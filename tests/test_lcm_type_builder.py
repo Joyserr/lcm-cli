@@ -458,3 +458,148 @@ class TestExampleFiles:
         # example_t should also be registered
         ex_cls = reg.find_by_name("example_t")
         assert ex_cls is not None
+
+    def test_sibling_auto_discovery(self) -> None:
+        """register_file should auto-discover sibling .lcm files."""
+        reg = TypeRegistry()
+        # Only register example_list_t (references example_t from another file)
+        reg.register_file("lcm_ref/examples/types/example_list_t.lcm")
+
+        # example_t should be auto-discovered from the same directory
+        ex_cls = reg.find_by_name("example_t")
+        assert ex_cls is not None, "example_t should be auto-discovered"
+
+        # All types in the directory should be registered
+        assert reg.find_by_name("node_t") is not None
+        assert reg.find_by_name("muldim_array_t") is not None
+
+    def test_nested_decode_via_auto_discovery(self) -> None:
+        """End-to-end: single file -> auto-discover deps -> decode nested."""
+        reg = TypeRegistry()
+        reg.register_file("lcm_ref/examples/types/example_list_t.lcm")
+
+        list_cls = reg.find_by_name("example_list_t")
+        ex_cls = reg.find_by_name("example_t")
+
+        msg = list_cls()
+        msg.n = 1
+        item = ex_cls()
+        item.timestamp = 42
+        item.position = [1.0, 2.0, 3.0]
+        item.orientation = [0.1, 0.2, 0.3, 0.4]
+        item.num_ranges = 0
+        item.ranges = []
+        item.name = "nested_test"
+        item.enabled = True
+        msg.examples = [item]
+
+        data = msg.encode()
+        decoded = list_cls.decode(data)
+        assert decoded.n == 1
+        assert decoded.examples[0].name == "nested_test"
+        assert decoded.examples[0].position == [1.0, 2.0, 3.0]
+
+
+class TestDeepNesting:
+    """Tests using the test_lcm_types/ directory with multi-level nesting."""
+
+    def test_formation_deep_nesting(self) -> None:
+        """4-level nesting: formation -> robot -> pose -> point."""
+        reg = TypeRegistry()
+        reg.register_file("test_lcm_types/formation_t.lcm")
+
+        formation_cls = reg.find_by_name("formation_t")
+        robot_cls = reg.find_by_name("robot_state_t")
+        pose_cls = reg.find_by_name("pose_t")
+        point_cls = reg.find_by_name("point_t")
+        sensor_cls = reg.find_by_name("sensor_reading_t")
+
+        assert all(c is not None for c in [
+            formation_cls, robot_cls, pose_cls, point_cls, sensor_cls
+        ])
+
+        fm = formation_cls()
+        fm.timestamp = 1000
+        fm.mission_id = "test"
+        fm.num_robots = 1
+
+        robot = robot_cls()
+        robot.timestamp = 999
+        robot.robot_id = "R1"
+        robot.battery_pct = 80
+        robot.is_active = True
+
+        pose = pose_cls()
+        pose.timestamp = 998
+        pose.heading = 1.0
+        p1 = point_cls()
+        p1.x, p1.y, p1.z = 1.0, 2.0, 3.0
+        pose.position = p1
+        p2 = point_cls()
+        p2.x, p2.y, p2.z = 0.0, 0.0, 0.0
+        pose.velocity = p2
+        robot.pose = pose
+
+        s = sensor_cls()
+        s.timestamp = 997
+        s.sensor_name = "lidar"
+        s.num_values = 2
+        s.values = [1.5, 2.5]
+        s.is_valid = True
+        robot.num_sensors = 1
+        robot.sensors = [s]
+
+        fm.robots = [robot]
+        fm.grid_rows = 1
+        fm.grid_cols = 2
+        fm.cost_grid = [[10.0, 20.0]]
+
+        data = fm.encode()
+        decoded = formation_cls.decode(data)
+
+        assert decoded.mission_id == "test"
+        assert decoded.robots[0].robot_id == "R1"
+        assert decoded.robots[0].pose.position.x == 1.0
+        assert decoded.robots[0].pose.velocity.y == 0.0
+        assert decoded.robots[0].sensors[0].sensor_name == "lidar"
+        assert decoded.robots[0].sensors[0].values == [1.5, 2.5]
+        assert decoded.cost_grid == [[10.0, 20.0]]
+
+    def test_tree_recursive_type(self) -> None:
+        """Recursive tree_node_t with nested children."""
+        reg = TypeRegistry()
+        reg.register_file("test_lcm_types/tree_node_t.lcm")
+
+        cls = reg.find_by_name("tree_node_t")
+        root = cls()
+        root.id = 1
+        root.label = "root"
+        root.num_children = 2
+
+        c1 = cls()
+        c1.id = 2
+        c1.label = "child_a"
+        c1.num_children = 0
+        c1.children = []
+
+        c2 = cls()
+        c2.id = 3
+        c2.label = "child_b"
+        c2.num_children = 1
+        gc = cls()
+        gc.id = 4
+        gc.label = "grandchild"
+        gc.num_children = 0
+        gc.children = []
+        c2.children = [gc]
+
+        root.children = [c1, c2]
+
+        data = root.encode()
+        decoded = cls.decode(data)
+
+        assert decoded.id == 1
+        assert decoded.label == "root"
+        assert len(decoded.children) == 2
+        assert decoded.children[0].label == "child_a"
+        assert decoded.children[1].children[0].label == "grandchild"

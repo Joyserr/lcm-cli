@@ -385,11 +385,19 @@ _MASK64 = 0xFFFFFFFFFFFFFFFF
 
 
 def _hash_update(v: int, c: int) -> int:
-    """Replicate lcmgen.c hash_update()."""
+    """Replicate lcmgen.c hash_update() with arithmetic right shift.
+
+    C int64_t >> 55 is an arithmetic (sign-extending) shift.
+    Python >> on positive ints is logical (zero-extending).
+    We must simulate the signed behaviour.
+    """
     # Sign-extend c to 64-bit if needed (C char is signed on most platforms)
     if c > 127:
         c -= 256
-    v = (((v << 8) ^ (v >> 55)) + c) & _MASK64
+    # Convert to signed 64-bit for arithmetic right shift
+    sv = v if v < (1 << 63) else v - (1 << 64)
+    ashift = (sv >> 55) & _MASK64  # arithmetic shift, masked to unsigned 64-bit
+    v = (((v << 8) ^ ashift) + c) & _MASK64
     return v
 
 
@@ -478,7 +486,7 @@ def compute_fingerprints(structs: List[LcmStruct]) -> None:
                 if ref_struct is not None:
                     tmphash = (tmphash + _recursive_hash(ref_struct, new_parents)) & _MASK64
 
-        # Rotate left by 1
+        # Rotate left by 1 (logical right shift — matches lcm-gen Python output)
         tmphash = (((tmphash << 1) & _MASK64) + (tmphash >> 63)) & _MASK64
 
         cache[struct.full_name] = tmphash

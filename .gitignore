@@ -22,6 +22,12 @@ build/
 # LCM reference repo (not part of this project)
 lcm_ref/
 
+# lcm-gen generated Python types
+gen_types/
+
+# Virtual environment
+venv/
+
 # OS files
 .DS_Store
 Thumbs.db
