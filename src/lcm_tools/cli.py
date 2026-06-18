@@ -14,6 +14,7 @@ from typing import Optional
 import typer
 
 from lcm_tools.commands.node_list import node_app
+from lcm_tools.commands.record import record
 from lcm_tools.commands.topic_echo import echo
 from lcm_tools.commands.topic_list import list_channels
 from lcm_tools.commands.topic_stats import stats
@@ -46,6 +47,9 @@ topic_app.command(name="stats", help="Show real-time channel statistics.")(stats
 
 # Node subcommand group is imported as a Typer app and attached directly
 app.add_typer(node_app, name="node")
+
+# Top-level standalone commands (record/play mirror `ros2 bag record/play`)
+app.command(name="record", help="Record live LCM traffic to a .log file.")(record)
 
 
 if __name__ == "__main__":
