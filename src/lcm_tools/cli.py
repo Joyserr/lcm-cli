@@ -14,6 +14,7 @@ from typing import Optional
 import typer
 
 from lcm_tools.commands.node_list import node_app
+from lcm_tools.commands.play import play
 from lcm_tools.commands.record import record
 from lcm_tools.commands.topic_echo import echo
 from lcm_tools.commands.topic_list import list_channels
@@ -50,6 +51,7 @@ app.add_typer(node_app, name="node")
 
 # Top-level standalone commands (record/play mirror `ros2 bag record/play`)
 app.command(name="record", help="Record live LCM traffic to a .log file.")(record)
+app.command(name="play", help="Replay an LCM .log file to the multicast network.")(play)
 
 
 if __name__ == "__main__":
