@@ -58,19 +58,19 @@ src/lcm_tools/lcm_log.py         # 新文件:标准 LCM 日志格式 I/O
 - 文件无全局头,直接是 event 序列。
 - 每个 event = sync word + event 头 + channel 字节串(无 null 结尾)+ data。
 - sync word:`0xEDA1DA01`(每个 event 头部最前面的 4 字节 magic)。
+- **已用官方样本 `lcm_ref/test/python/example.lcmlog` 校验**:首条 event 解析为 `eventnum=0`、`channellen=10`、channel=`"JOINT_TEST"`、`datalen=366`,与 hex dump 完全吻合。
 
 ```
-[magic: uint32 = 0xEDA1DA01]   # sync word
-[eventnum: uint32]             # 从 0 递增
-[time_sec:  uint32]            # Unix 秒
-[time_usec: uint32]            # 微秒部分(< 1_000_000)
-[chan_len:  uint32]            # channel 字节数(不含 null)
-[data_len:  uint32]            # payload 字节数
-[channel:   chan_len bytes]    # 注意:日志里无 null 结尾
+[magic:     uint32 = 0xEDA1DA01]   # sync word
+[eventnum:  int64]                 # 从 0 递增(8 字节)
+[timestamp: int64]                 # microseconds since epoch(8 字节)
+[chan_len:  int32]                 # channel 字节数(不含 null)
+[data_len:  int32]                 # payload 字节数
+[channel:   chan_len bytes]        # 注意:日志里无 null 结尾
 [data:      data_len bytes]
 ```
 
-timestamp 用 wall clock `time.time()` 的微秒(`lcm-logger` 约定 utime = microseconds since epoch)。
+头共 4 + 8 + 8 + 4 + 4 = **28 字节**,struct 格式串 `!Iqqii`(magic I + eventnum q + timestamp q + chan_len i + data_len i)。timestamp 用 wall clock `time.time()` 的微秒(`lcm-logger` 约定 utime = microseconds since epoch)。
 
 > ⚠️ 写入侧需保证 channel 字节串不含 null 结尾(与组播协议相反);读取侧据此长度读取。
 
