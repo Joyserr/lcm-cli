@@ -1,4 +1,4 @@
-"""Unit tests for lcm_tools.export module."""
+"""Unit tests for lcm_cli.export module."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from lcm_tools.export import (
+from lcm_cli.export import (
     CsvWriter,
     FieldExtractor,
     FieldPath,

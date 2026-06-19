@@ -5,7 +5,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from lcm_tools.cli import app
+from lcm_cli.cli import app
 
 runner = CliRunner()
 

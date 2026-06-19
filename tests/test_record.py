@@ -1,4 +1,4 @@
-"""Tests for lcm_tools.commands.record."""
+"""Tests for lcm_cli.commands.record."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ import threading
 
 from typer.testing import CliRunner
 
-from lcm_tools.cli import app
-from lcm_tools.lcm_log import iter_lcm_log
-from lcm_tools.protocol import PacketInfo
+from lcm_cli.cli import app
+from lcm_cli.lcm_log import iter_lcm_log
+from lcm_cli.protocol import PacketInfo
 
 runner = CliRunner()
 
@@ -34,10 +34,10 @@ class TestRecord:
             PacketInfo(channel=None, seqno=2, payload=b"\x04", is_fragment=True),
         ]
         monkeypatch.setattr(
-            "lcm_tools.commands.record.run_listener", _make_run_listener(pkts)
+            "lcm_cli.commands.record.run_listener", _make_run_listener(pkts)
         )
         # Neutralize the status-loop sleep so duration=0 exits immediately.
-        monkeypatch.setattr("lcm_tools.commands.record.time.sleep", lambda s: None)
+        monkeypatch.setattr("lcm_cli.commands.record.time.sleep", lambda s: None)
 
         result = runner.invoke(
             app, ["record", "-o", str(out), "--duration", "0"]
@@ -59,9 +59,9 @@ class TestRecord:
             PacketInfo(channel="CAM_RIGHT", seqno=2, payload=b"z", packet_size=1),
         ]
         monkeypatch.setattr(
-            "lcm_tools.commands.record.run_listener", _make_run_listener(pkts)
+            "lcm_cli.commands.record.run_listener", _make_run_listener(pkts)
         )
-        monkeypatch.setattr("lcm_tools.commands.record.time.sleep", lambda s: None)
+        monkeypatch.setattr("lcm_cli.commands.record.time.sleep", lambda s: None)
 
         result = runner.invoke(
             app, ["record", "-o", str(out), "--channel", "CAM.*", "--duration", "0"]
@@ -72,9 +72,9 @@ class TestRecord:
 
     def test_default_output_filename_pattern(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "lcm_tools.commands.record.run_listener", _make_run_listener([])
+            "lcm_cli.commands.record.run_listener", _make_run_listener([])
         )
-        monkeypatch.setattr("lcm_tools.commands.record.time.sleep", lambda s: None)
+        monkeypatch.setattr("lcm_cli.commands.record.time.sleep", lambda s: None)
         monkeypatch.chdir(tmp_path)
 
         result = runner.invoke(app, ["record", "--duration", "0"])
@@ -85,7 +85,7 @@ class TestRecord:
     def test_invalid_regex_exits_nonzero(self, tmp_path, monkeypatch):
         out = tmp_path / "rec.log"
         monkeypatch.setattr(
-            "lcm_tools.commands.record.run_listener", _make_run_listener([])
+            "lcm_cli.commands.record.run_listener", _make_run_listener([])
         )
         result = runner.invoke(
             app, ["record", "-o", str(out), "--channel", "[invalid", "--duration", "0"]

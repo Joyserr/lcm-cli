@@ -16,13 +16,13 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from lcm_tools.protocol import PacketInfo, extract_fingerprint, fingerprint_to_hex
+from lcm_cli.protocol import PacketInfo, extract_fingerprint, fingerprint_to_hex
 
 # TYPE_CHECKING import for TypeRegistry (avoid circular imports)
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from lcm_tools.core.lcm_type_builder import TypeRegistry
+    from lcm_cli.core.lcm_type_builder import TypeRegistry
 
 _console = Console()
 

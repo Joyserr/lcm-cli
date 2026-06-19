@@ -1,1 +1,1 @@
-"""Tests for lcm_tools.tests package."""
+"""Tests for lcm_cli.tests package."""

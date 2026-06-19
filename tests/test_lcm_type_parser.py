@@ -1,10 +1,10 @@
-"""Unit tests for lcm_tools.core.lcm_type_parser."""
+"""Unit tests for lcm_cli.core.lcm_type_parser."""
 
 from __future__ import annotations
 
 import pytest
 
-from lcm_tools.core.lcm_type_parser import (
+from lcm_cli.core.lcm_type_parser import (
     LcmParseError,
     compute_fingerprints,
     parse_lcm_string,

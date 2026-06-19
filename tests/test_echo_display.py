@@ -1,8 +1,8 @@
-"""Unit tests for lcm_tools.display.echo_display nested struct formatting."""
+"""Unit tests for lcm_cli.display.echo_display nested struct formatting."""
 
 from __future__ import annotations
 
-from lcm_tools.display.echo_display import _extract_fields, _format_value
+from lcm_cli.display.echo_display import _extract_fields, _format_value
 
 
 # ---------------------------------------------------------------------------

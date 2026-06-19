@@ -7,8 +7,8 @@ from typing import List, Optional
 import typer
 from rich.console import Console
 
-from lcm_tools.core.lcm_type_builder import TypeRegistry
-from lcm_tools.display.type_display import build_type_list_table
+from lcm_cli.core.lcm_type_builder import TypeRegistry
+from lcm_cli.display.type_display import build_type_list_table
 
 _console = Console()
 

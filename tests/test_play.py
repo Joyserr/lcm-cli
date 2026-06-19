@@ -1,12 +1,12 @@
-"""Tests for lcm_tools.commands.play."""
+"""Tests for lcm_cli.commands.play."""
 
 from __future__ import annotations
 
 
 from typer.testing import CliRunner
 
-from lcm_tools.cli import app
-from lcm_tools.lcm_log import LogEvent, write_lcm_log
+from lcm_cli.cli import app
+from lcm_cli.lcm_log import LogEvent, write_lcm_log
 
 runner = CliRunner()
 
@@ -35,10 +35,10 @@ class TestPlay:
                 pass
 
         monkeypatch.setattr(
-            "lcm_tools.commands.play.socket.socket", lambda *a, **k: FakeSock()
+            "lcm_cli.commands.play.socket.socket", lambda *a, **k: FakeSock()
         )
         # Neutralize any cooperative sleeps.
-        monkeypatch.setattr("lcm_tools.commands.play.time.sleep", lambda s: None)
+        monkeypatch.setattr("lcm_cli.commands.play.time.sleep", lambda s: None)
 
         result = runner.invoke(app, ["play", str(log_path)])
         assert result.exit_code == 0, result.output
@@ -47,7 +47,7 @@ class TestPlay:
         # Each sent payload is the LCM short-message wire format (magic+seqno+ch\0+data).
         import struct
 
-        from lcm_tools.protocol import LCM2_MAGIC_SHORT
+        from lcm_cli.protocol import LCM2_MAGIC_SHORT
 
         magic, seqno = struct.unpack("!II", sent[0][2][:8])
         assert magic == LCM2_MAGIC_SHORT
@@ -75,9 +75,9 @@ class TestPlay:
                 pass
 
         monkeypatch.setattr(
-            "lcm_tools.commands.play.socket.socket", lambda *a, **k: FakeSock()
+            "lcm_cli.commands.play.socket.socket", lambda *a, **k: FakeSock()
         )
-        monkeypatch.setattr("lcm_tools.commands.play.time.sleep", lambda s: None)
+        monkeypatch.setattr("lcm_cli.commands.play.time.sleep", lambda s: None)
 
         result = runner.invoke(app, ["play", str(log_path), "--channel", "CAM.*"])
         assert result.exit_code == 0, result.output

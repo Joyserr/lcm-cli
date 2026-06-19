@@ -18,9 +18,9 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from lcm_tools.lcm_log import LogEvent, write_lcm_log
-from lcm_tools.listener import run_listener
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, PacketInfo
+from lcm_cli.lcm_log import LogEvent, write_lcm_log
+from lcm_cli.listener import run_listener
+from lcm_cli.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, PacketInfo
 
 _console = Console()
 

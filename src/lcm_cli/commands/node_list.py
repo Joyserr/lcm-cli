@@ -15,9 +15,9 @@ import time
 import typer
 from rich.console import Console
 
-from lcm_tools.core.discovery import ChannelDiscovery
-from lcm_tools.display.stats_display import build_node_table
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT
+from lcm_cli.core.discovery import ChannelDiscovery
+from lcm_cli.display.stats_display import build_node_table
+from lcm_cli.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT
 
 _console = Console()
 
@@ -67,7 +67,7 @@ def list_nodes(
     discovery = ChannelDiscovery()
 
     # Use PacketSource for live/offline
-    from lcm_tools.source import make_source
+    from lcm_cli.source import make_source
 
     source = make_source(
         from_path=from_log,

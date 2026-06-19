@@ -1,11 +1,11 @@
-"""Unit tests for lcm_tools.protocol module."""
+"""Unit tests for lcm_cli.protocol module."""
 
 from __future__ import annotations
 
 import struct
 
 
-from lcm_tools.protocol import (
+from lcm_cli.protocol import (
     LCM2_MAGIC_LONG,
     LCM2_MAGIC_SHORT,
     extract_fingerprint,

@@ -8,10 +8,10 @@ import typer
 from rich.console import Console
 from rich.live import Live
 
-from lcm_tools.core.stats import StatsCollector
-from lcm_tools.display.stats_display import build_bw_table
-from lcm_tools.listener import run_listener
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT
+from lcm_cli.core.stats import StatsCollector
+from lcm_cli.display.stats_display import build_bw_table
+from lcm_cli.listener import run_listener
+from lcm_cli.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT
 
 _console = Console()
 

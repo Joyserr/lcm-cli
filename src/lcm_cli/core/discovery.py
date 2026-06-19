@@ -16,7 +16,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
-from lcm_tools.protocol import PacketInfo, extract_fingerprint
+from lcm_cli.protocol import PacketInfo, extract_fingerprint
 
 
 @dataclass

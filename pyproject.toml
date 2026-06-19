@@ -53,14 +53,14 @@ dev = [
 ]
 
 [project.scripts]
-lcm = "lcm_tools.cli:app"
+lcm = "lcm_cli.cli:app"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/lcm_tools"]
+packages = ["src/lcm_cli"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [

@@ -1,4 +1,4 @@
-"""Unit tests for lcm_tools.core.stats module."""
+"""Unit tests for lcm_cli.core.stats module."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ import time
 
 import pytest
 
-from lcm_tools.core.stats import ChannelStats, StatsCollector
-from lcm_tools.protocol import PacketInfo
+from lcm_cli.core.stats import ChannelStats, StatsCollector
+from lcm_cli.protocol import PacketInfo
 
 
 def _make_packet(channel: str, size: int = 100) -> PacketInfo:

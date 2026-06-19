@@ -16,8 +16,8 @@ import time
 import typer
 from rich.console import Console
 
-from lcm_tools.lcm_log import iter_lcm_log
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, LCM2_MAGIC_SHORT
+from lcm_cli.lcm_log import iter_lcm_log
+from lcm_cli.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, LCM2_MAGIC_SHORT
 
 _console = Console()
 

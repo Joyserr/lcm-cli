@@ -6,9 +6,9 @@ from typing import Optional
 
 from rich.table import Table
 
-from lcm_tools.core.lcm_type_builder import TypeRegistry
-from lcm_tools.core.lcm_type_parser import LcmStruct
-from lcm_tools.protocol import fingerprint_to_hex
+from lcm_cli.core.lcm_type_builder import TypeRegistry
+from lcm_cli.core.lcm_type_parser import LcmStruct
+from lcm_cli.protocol import fingerprint_to_hex
 
 
 def build_type_list_table(

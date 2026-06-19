@@ -13,10 +13,10 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from lcm_tools.display.type_display import build_type_show_table
-from lcm_tools.core.lcm_type_builder import TypeRegistry
-from lcm_tools.core.stats import StatsCollector
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, fingerprint_to_hex
+from lcm_cli.display.type_display import build_type_show_table
+from lcm_cli.core.lcm_type_builder import TypeRegistry
+from lcm_cli.core.stats import StatsCollector
+from lcm_cli.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, fingerprint_to_hex
 
 _console = Console()
 
@@ -59,7 +59,7 @@ def info(
             _console.print(f"[dim]Loaded types from: {lcm_dir}[/dim]")
 
     # Collect stats using the collector directly
-    from lcm_tools.protocol import PacketInfo
+    from lcm_cli.protocol import PacketInfo
 
     collector = StatsCollector()
 
@@ -72,7 +72,7 @@ def info(
             collector.on_packet(pkt)
 
     # Use PacketSource abstraction for live or offline
-    from lcm_tools.source import make_source
+    from lcm_cli.source import make_source
 
     source = make_source(
         from_path=from_log,

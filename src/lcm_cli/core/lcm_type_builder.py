@@ -15,7 +15,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
-from lcm_tools.core.lcm_type_parser import (
+from lcm_cli.core.lcm_type_parser import (
     LcmStruct,
     compute_fingerprints,
     parse_lcm_file,

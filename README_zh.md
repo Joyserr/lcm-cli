@@ -273,9 +273,9 @@ LCM 使用 UDP 组播进行通信（默认 `239.255.76.67:7667`）。
 ## 项目结构
 
 ```
-src/lcm_tools/
+src/lcm_cli/
 ├── __init__.py                  # 包定义 + 版本号
-├── __main__.py                  # python -m lcm_tools 入口
+├── __main__.py                  # python -m lcm_cli 入口
 ├── cli.py                       # Typer 入口，注册子命令
 ├── commands/
 │   ├── topic_echo.py            # lcm topic echo（支持 --csv/--jsonl 导出）

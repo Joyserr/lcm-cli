@@ -21,14 +21,14 @@ import typing
 import typer
 from rich.console import Console
 
-from lcm_tools.display.echo_display import (
+from lcm_cli.display.echo_display import (
     echo_packet_auto_decode,
     echo_packet_decoded,
     echo_packet_default,
     echo_packet_raw,
     load_decode_class,
 )
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, PacketInfo, extract_fingerprint
+from lcm_cli.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, PacketInfo, extract_fingerprint
 
 _console = Console()
 
@@ -123,7 +123,7 @@ def echo(
     field_paths = []
     if fields:
         try:
-            from lcm_tools.export import FieldPath
+            from lcm_cli.export import FieldPath
 
             field_paths = [FieldPath.parse(f) for f in fields]
         except ValueError as exc:
@@ -140,7 +140,7 @@ def echo(
     type_registry: typing.Any = None
     if lcm_files:
         try:
-            from lcm_tools.core.lcm_type_builder import TypeRegistry
+            from lcm_cli.core.lcm_type_builder import TypeRegistry
 
             type_registry = TypeRegistry()
             type_registry.register_paths(lcm_files)
@@ -185,7 +185,7 @@ def echo(
                 pass  # drop oldest if producer outpaces display
 
     # Use PacketSource abstraction for live or offline
-    from lcm_tools.source import make_source
+    from lcm_cli.source import make_source
 
     source = make_source(
         from_path=from_log,
@@ -211,13 +211,13 @@ def echo(
         )
 
         if csv_output:
-            from lcm_tools.export import CsvWriter
+            from lcm_cli.export import CsvWriter
 
             csv_file = open(csv_output, "w", newline="")
             csv_writer = CsvWriter(csv_file)
 
         if jsonl_output:
-            from lcm_tools.export import JsonlWriter
+            from lcm_cli.export import JsonlWriter
 
             jsonl_file = open(jsonl_output, "w")
             jsonl_writer = JsonlWriter(jsonl_file)
@@ -276,7 +276,7 @@ def echo(
 
                 if decoded_obj and field_paths:
                     # Field extraction mode
-                    from lcm_tools.export import FieldExtractor
+                    from lcm_cli.export import FieldExtractor
 
                     extracted = FieldExtractor.extract_multiple(decoded_obj, field_paths)
                     export_data.update(extracted)

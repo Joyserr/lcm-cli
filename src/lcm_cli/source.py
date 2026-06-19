@@ -12,13 +12,13 @@ import threading
 import time
 from typing import Callable, Optional, Protocol
 
-from lcm_tools.lcm_log import LogEvent, iter_lcm_log
-from lcm_tools.listener import (
+from lcm_cli.lcm_log import LogEvent, iter_lcm_log
+from lcm_cli.listener import (
     DEFAULT_MC_ADDR,
     DEFAULT_MC_PORT,
     run_listener,
 )
-from lcm_tools.protocol import PacketInfo
+from lcm_cli.protocol import PacketInfo
 
 PacketCallback = Callable[[PacketInfo], None]
 

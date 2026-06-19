@@ -273,9 +273,9 @@ Reference: [LCM UDP Multicast Protocol](https://lcm-proj.github.io/lcm/content/u
 ## Project Structure
 
 ```
-src/lcm_tools/
+src/lcm_cli/
 ├── __init__.py                  # Package definition + version
-├── __main__.py                  # python -m lcm_tools entry point
+├── __main__.py                  # python -m lcm_cli entry point
 ├── cli.py                       # Typer entry point, registers subcommands
 ├── commands/
 │   ├── topic_echo.py            # lcm topic echo (with --csv/--jsonl export)

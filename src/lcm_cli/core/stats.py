@@ -17,7 +17,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from lcm_tools.protocol import PacketInfo, extract_fingerprint
+from lcm_cli.protocol import PacketInfo, extract_fingerprint
 
 # Default sliding-window capacity (number of samples kept per channel)
 _DEFAULT_WINDOW: int = 2000

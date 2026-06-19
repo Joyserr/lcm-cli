@@ -1,13 +1,13 @@
-"""Unit tests for lcm_tools.source module."""
+"""Unit tests for lcm_cli.source module."""
 
 from __future__ import annotations
 
 import time
 
 
-from lcm_tools.lcm_log import LogEvent, write_lcm_log
-from lcm_tools.protocol import PacketInfo
-from lcm_tools.source import LiveSource, LogFileSource, make_source
+from lcm_cli.lcm_log import LogEvent, write_lcm_log
+from lcm_cli.protocol import PacketInfo
+from lcm_cli.source import LiveSource, LogFileSource, make_source
 
 
 class TestLiveSource:

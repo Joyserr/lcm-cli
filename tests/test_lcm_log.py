@@ -1,4 +1,4 @@
-"""Unit tests for lcm_tools.lcm_log module."""
+"""Unit tests for lcm_cli.lcm_log module."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from lcm_tools.lcm_log import LogEvent, iter_lcm_log, write_lcm_log
+from lcm_cli.lcm_log import LogEvent, iter_lcm_log, write_lcm_log
 
 
 class TestRoundTrip:

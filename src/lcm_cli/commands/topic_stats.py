@@ -13,9 +13,9 @@ import typer
 from rich.console import Console
 from rich.live import Live
 
-from lcm_tools.core.stats import StatsCollector
-from lcm_tools.display.stats_display import build_stats_table
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT
+from lcm_cli.core.stats import StatsCollector
+from lcm_cli.display.stats_display import build_stats_table
+from lcm_cli.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT
 
 _console = Console()
 
@@ -86,7 +86,7 @@ def stats(
     )
 
     # Use PacketSource for live/offline
-    from lcm_tools.source import make_source
+    from lcm_cli.source import make_source
 
     source = make_source(
         from_path=from_log,

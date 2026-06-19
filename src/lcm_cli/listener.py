@@ -14,7 +14,7 @@ import sys
 import threading
 from typing import Callable, Optional
 
-from lcm_tools.protocol import (
+from lcm_cli.protocol import (
     DEFAULT_MC_ADDR,
     DEFAULT_MC_PORT,
     PacketInfo,

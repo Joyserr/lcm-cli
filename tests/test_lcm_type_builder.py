@@ -1,11 +1,11 @@
-"""Unit tests for lcm_tools.core.lcm_type_builder."""
+"""Unit tests for lcm_cli.core.lcm_type_builder."""
 
 from __future__ import annotations
 
 import struct as _struct
 
 
-from lcm_tools.core.lcm_type_builder import TypeRegistry
+from lcm_cli.core.lcm_type_builder import TypeRegistry
 
 
 # ---------------------------------------------------------------------------

@@ -11,8 +11,8 @@ from typing import List, Optional
 from rich.console import Console
 from rich.table import Table
 
-from lcm_tools.core.discovery import ChannelInfo, NodeInfo
-from lcm_tools.core.stats import StatsSnapshot
+from lcm_cli.core.discovery import ChannelInfo, NodeInfo
+from lcm_cli.core.stats import StatsSnapshot
 
 _console = Console()
 

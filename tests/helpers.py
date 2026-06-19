@@ -5,7 +5,7 @@ from __future__ import annotations
 import struct
 from typing import Optional
 
-from lcm_tools.protocol import LCM2_MAGIC_LONG, LCM2_MAGIC_SHORT
+from lcm_cli.protocol import LCM2_MAGIC_LONG, LCM2_MAGIC_SHORT
 
 
 def build_short_packet(

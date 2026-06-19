@@ -34,15 +34,15 @@ jobs:
 
       - name: Lint with Ruff
         run: |
-          ruff check src/lcm_tools tests
+          ruff check src/lcm_cli tests
 
       - name: Type check with mypy
         run: |
-          mypy src/lcm_tools --ignore-missing-imports
+          mypy src/lcm_cli --ignore-missing-imports
 
       - name: Run tests
         run: |
-          pytest tests/ -v --cov=lcm_tools --cov-report=xml
+          pytest tests/ -v --cov=lcm_cli --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'

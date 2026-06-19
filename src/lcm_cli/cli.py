@@ -11,17 +11,17 @@ from __future__ import annotations
 
 import typer
 
-from lcm_tools import __version__
-from lcm_tools.commands.node_list import node_app
-from lcm_tools.commands.play import play
-from lcm_tools.commands.record import record
-from lcm_tools.commands.topic_bw import bw
-from lcm_tools.commands.topic_echo import echo
-from lcm_tools.commands.topic_info import info
-from lcm_tools.commands.topic_list import list_channels
-from lcm_tools.commands.topic_stats import stats
-from lcm_tools.commands.type_list import type_list
-from lcm_tools.commands.type_show import type_show
+from lcm_cli import __version__
+from lcm_cli.commands.node_list import node_app
+from lcm_cli.commands.play import play
+from lcm_cli.commands.record import record
+from lcm_cli.commands.topic_bw import bw
+from lcm_cli.commands.topic_echo import echo
+from lcm_cli.commands.topic_info import info
+from lcm_cli.commands.topic_list import list_channels
+from lcm_cli.commands.topic_stats import stats
+from lcm_cli.commands.type_list import type_list
+from lcm_cli.commands.type_show import type_show
 
 # ---------------------------------------------------------------------------
 # Root application
