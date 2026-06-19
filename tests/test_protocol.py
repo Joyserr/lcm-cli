@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import struct
 
-import pytest
 
 from lcm_tools.protocol import (
     LCM2_MAGIC_LONG,
     LCM2_MAGIC_SHORT,
-    PacketInfo,
     extract_fingerprint,
     fingerprint_to_hex,
     parse_lcm_packet,

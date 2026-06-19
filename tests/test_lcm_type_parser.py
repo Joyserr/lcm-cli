@@ -5,14 +5,10 @@ from __future__ import annotations
 import pytest
 
 from lcm_tools.core.lcm_type_parser import (
-    LcmDimension,
-    LcmMember,
-    LcmStruct,
     LcmParseError,
     compute_fingerprints,
     parse_lcm_string,
     parse_lcm_file,
-    _hash_update,
     _hash_string_update,
     _lcm_struct_hash,
 )

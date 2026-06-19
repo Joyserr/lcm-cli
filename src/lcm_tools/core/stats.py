@@ -17,7 +17,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from lcm_tools.protocol import PacketInfo
+from lcm_tools.protocol import PacketInfo, extract_fingerprint
 
 # Default sliding-window capacity (number of samples kept per channel)
 _DEFAULT_WINDOW: int = 2000
@@ -35,6 +35,7 @@ class ChannelStats:
     channel: str
     msg_count: int = 0
     total_bytes: int = 0
+    fingerprint: int | None = None
     window_seconds: float = _DEFAULT_WINDOW_SECONDS
     _timestamps: deque = field(default_factory=lambda: deque(maxlen=_DEFAULT_WINDOW))
     _sizes: deque = field(default_factory=lambda: deque(maxlen=_DEFAULT_WINDOW))
@@ -134,7 +135,10 @@ class StatsCollector:
 
         with self._lock:
             if channel not in self._stats:
-                self._stats[channel] = ChannelStats(channel=channel)
+                fp = extract_fingerprint(pkt.payload)
+                self._stats[channel] = ChannelStats(
+                    channel=channel, fingerprint=fp
+                )
             self._stats[channel].record(pkt.packet_size)
 
     def get_stats(self) -> List[ChannelStats]:
@@ -180,6 +184,7 @@ class StatsCollector:
                             frequency_hz=s.frequency_hz,
                             bandwidth_kbps=s.bandwidth_kbps,
                             avg_msg_size=s.avg_msg_size,
+                            fingerprint=s.fingerprint,
                         )
                     )
         return StatsSnapshot(
@@ -198,6 +203,7 @@ class _ChannelSnapshot:
     frequency_hz: float
     bandwidth_kbps: float
     avg_msg_size: float
+    fingerprint: int | None = None
 
 
 @dataclass(frozen=True)

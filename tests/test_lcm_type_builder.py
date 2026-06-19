@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import struct as _struct
 
-import pytest
 
 from lcm_tools.core.lcm_type_builder import TypeRegistry
 

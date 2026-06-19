@@ -32,16 +32,37 @@ class TestChannelStats:
     def test_frequency_calcation(self) -> None:
         stats = ChannelStats(channel="TEST")
         # Record 11 messages over 1 second => ~10 Hz
+        base = time.monotonic()
         for i in range(11):
-            stats.record(50, ts=i * 0.1)
+            stats.record(50, ts=base + i * 0.1)
         assert 9.5 < stats.frequency_hz < 10.5
 
     def test_bandwidth_calculation(self) -> None:
         stats = ChannelStats(channel="TEST")
         # 11 messages of 1024 bytes each over 1 second => 11 * 1024 / 1024 = 11 KB/s
+        base = time.monotonic()
         for i in range(11):
-            stats.record(1024, ts=i * 0.1)
+            stats.record(1024, ts=base + i * 0.1)
         assert 10.5 < stats.bandwidth_kbps < 11.5
+
+    def test_rate_decays_to_zero_when_silent(self) -> None:
+        stats = ChannelStats(channel="TEST")
+        # Record 11 messages over the last second of real time.
+        for i in range(10, -1, -1):
+            stats.record(1024, ts=time.monotonic() - i * 0.1)
+        # Sanity check: it was publishing.
+        assert stats.frequency_hz > 0.0
+        # Simulate the publisher going silent: samples are pruned
+        # relative to real time, so after the window elapses they all
+        # age out and the rate (and bandwidth) decay to 0 rather than
+        # freeze at the last measured value.
+        stats.window_seconds = 0.05
+        time.sleep(0.1)
+        assert stats.frequency_hz == 0.0
+        assert stats.bandwidth_kbps == 0.0
+        # Cumulative counters are unaffected.
+        assert stats.msg_count == 11
+        assert stats.total_bytes == 11 * 1024
 
     def test_avg_msg_size(self) -> None:
         stats = ChannelStats(channel="TEST")
@@ -123,3 +144,35 @@ class TestStatsCollector:
         assert s.msg_count == 2
 
         assert collector.get_channel_stats("NONEXISTENT") is None
+
+    def test_snapshot_removes_stale_channels(self) -> None:
+        """Verify that channels stop appearing in snapshot when they go silent."""
+        collector = StatsCollector()
+        # Record messages for channel A
+        for i in range(5):
+            collector.on_packet(_make_packet("A", size=100))
+        # Record messages for channel B
+        for i in range(5):
+            collector.on_packet(_make_packet("B", size=100))
+
+        # Both channels should be in snapshot
+        snap = collector.snapshot()
+        assert snap.total_channels == 2
+        assert {c.channel for c in snap.channels} == {"A", "B"}
+
+        # Simulate channel A going silent by setting a very short window
+        # and waiting for it to expire
+        stats_a = collector.get_channel_stats("A")
+        assert stats_a is not None
+        stats_a.window_seconds = 0.05  # Very short window for testing
+
+        # Wait for the window to expire
+        time.sleep(0.1)
+
+        # Now snapshot should only contain channel B
+        snap = collector.snapshot()
+        assert snap.total_channels == 1
+        assert snap.channels[0].channel == "B"
+        # Channel A should have 0 frequency/bandwidth if it were still shown
+        assert stats_a.frequency_hz == 0.0
+        assert stats_a.bandwidth_kbps == 0.0

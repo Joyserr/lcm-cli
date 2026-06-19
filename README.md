@@ -1,209 +1,335 @@
 # LCM CLI Tools
 
-> 类 ROS2 风格的 LCM 命令行工具集 — 用于监控和调试 LCM（Lightweight Communications and Marshalling）网络。
+**[English](README.md)** | [中文](README_zh.md)
 
-## 功能概览
+> ROS2-style command line tools for monitoring and debugging LCM (Lightweight Communications and Marshalling) networks.
+
+## Features
 
 ```
-lcm topic echo <channel>   — 实时查看话题数据（类似 ros2 topic echo）
-lcm topic list             — 列出活跃话题/通道（类似 ros2 topic list）
-lcm topic stats            — 实时监控话题统计：频率、带宽、消息数、数据量（类似 ros2 topic hz）
-lcm node list              — 列出发现的发布节点（类似 ros2 node list）
+lcm topic echo <channel>   — View real-time topic data (like ros2 topic echo)
+lcm topic list             — List active topics/channels (like ros2 topic list)
+lcm topic stats            — Real-time topic stats: rate, bandwidth, msg count (like ros2 topic hz)
+lcm topic bw <channel>     — Monitor bandwidth for a single channel with sparkline graph
+lcm topic info <channel>   — Detailed channel information with type structure
+lcm node list              — List discovered publisher nodes (like ros2 node list)
+lcm type list              — List all registered LCM types
+lcm type show <type>       — Show type field structure
+lcm record                 — Record live LCM traffic to .log file (like ros2 bag record)
+lcm play <file.log>        — Replay .log file to multicast (like ros2 bag play)
 ```
 
-**亮点**：内置纯 Python `.lcm` 文件解析器，无需安装 `lcm-gen` 或配置 `PYTHONPATH`，指定 `.lcm` 文件即可自动解码消息。
+**Highlights**:
+- Built-in pure-Python `.lcm` file parser — no `lcm-gen` or `PYTHONPATH` needed
+- **Message Export**: CSV/JSONL export with field extraction (`--csv`, `--jsonl`, `--field`)
+- **Advanced Monitoring**: Sort/filter stats (`--sort`, `--top`, `--freeze`, `--spark`)
+- **Live Watch Mode**: Continuous refresh for topic/node list (`--watch`)
+- **Recording & Playback**: Full log file support compatible with `lcm-logger`
 
-## 安装
+## Installation
 
 ```bash
-# 从源码安装（推荐）
-cd lcm-tools
+# From PyPI
+pip install lcm-cli
+
+# From source (development)
+git clone https://github.com/Joyserr/lcm-cli.git
+cd lcm-cli
 pip install -e .
 
-# 如需传统 lcm-gen Python 包解码支持（可选）
-pip install -e ".[decode]"
+# Optional: traditional lcm-gen Python package decode support
+pip install lcm-cli[decode]
 ```
 
-**依赖**: Python >= 3.9, `typer`, `rich`（`lcm` 包为可选依赖，仅用于传统 `--type module.Class` 方式解码）。
+**Requirements**: Python >= 3.9, `typer`, `rich` (`lcm` package is optional, only for legacy `--type module.Class` decoding).
 
-## 快速开始
+## Quick Start
 
 ```bash
-# 查看所有子命令
+# Show all subcommands
 lcm --help
 
-# 列出活跃通道（监听 5 秒）
+# Show version
+lcm --version
+
+# List active channels (listens for 5 seconds)
 lcm topic list
 
-# 实时查看特定通道的消息（原始 hex 格式）
+# Continuous watch mode (live refresh)
+lcm topic list --watch
+
+# View messages on a channel (raw hex format)
 lcm topic echo EXAMPLE
 
-# 只接收 10 条消息
+# Receive only 10 messages
 lcm topic echo EXAMPLE -n 10
 
-# 用正则匹配多个通道
+# Match multiple channels with regex
 lcm topic echo "CAM.*"
 
-# 监控所有通道的实时统计
+# Monitor real-time statistics for all channels
 lcm topic stats
 
-# 只监控特定通道
-lcm topic stats CAMERA
+# Sort by bandwidth, show top 5
+lcm topic stats --sort bw --top 5
 
-# 列出发现的发布节点
+# Freeze mode (single snapshot)
+lcm topic stats --freeze
+
+# Monitor bandwidth with sparkline graph
+lcm topic bw CAMERA --spark
+
+# Detailed channel information
+lcm topic info CAMERA --lcm-file types/
+
+# List discovered publisher nodes
 lcm node list
 ```
 
-## 消息解码
-
-### 方式一：直接指定 `.lcm` 文件（推荐）
-
-无需安装 `lcm-gen`，无需配置 `PYTHONPATH`，工具内置纯 Python 解析器：
+## Recording & Playback
 
 ```bash
-# 指定单个 .lcm 文件，自动按 fingerprint 匹配消息类型
+# Record all channels to a .log file
+lcm record
+
+# Record specific channels with regex
+lcm record --channel "CAM.*" -o camera.log
+
+# Record for a fixed duration
+lcm record -d 60  # 60 seconds
+
+# Replay a .log file
+lcm play camera.log
+
+# Replay at 2x speed
+lcm play camera.log --speed 2.0
+
+# Loop playback
+lcm play camera.log --loop
+```
+
+## Message Export
+
+```bash
+# Export to CSV (headers auto-determined from first message)
+lcm topic echo EXAMPLE --csv output.csv
+
+# Export to JSON Lines
+lcm topic echo EXAMPLE --jsonl output.jsonl
+
+# Extract specific fields
+lcm topic echo EXAMPLE --field position --field velocity --csv data.csv
+
+# Extract nested fields
+lcm topic echo EXAMPLE --field imu.accel.x --field imu.gyro.y
+
+# Extract array slices
+lcm topic echo EXAMPLE --field "position[0:2]"
+
+# Custom timestamp format
+lcm topic echo EXAMPLE --csv data.csv --ts-format iso
+```
+
+## Advanced Statistics
+
+```bash
+# Sort channels by message rate
+lcm topic stats --sort rate
+
+# Show top 10 channels by bandwidth
+lcm topic stats --sort bw --top 10
+
+# Single snapshot (non-interactive)
+lcm topic stats --freeze
+
+# Add sparkline trend visualization
+lcm topic stats --spark
+
+# Monitor bandwidth for a single channel
+lcm topic bw CAMERA --window 10 --spark
+
+# Read stats from log file
+lcm topic stats --from recording.log
+```
+
+## Message Decoding
+
+### Type Diagnostics
+
+```bash
+# List all registered types
+lcm type list
+
+# Filter by package
+lcm type list --package exlcm
+
+# Show type structure
+lcm type show example_t --lcm-file types/
+
+# Grep search types
+lcm type list --grep "sensor"
+```
+
+### Method 1: Specify `.lcm` files directly (recommended)
+
+No `lcm-gen` installation, no `PYTHONPATH` configuration. The tool includes a built-in pure-Python parser:
+
+```bash
+# Specify a single .lcm file — auto-matches message type by fingerprint
 lcm topic echo EXAMPLE --lcm-file types/example_t.lcm
 
-# 指定目录（递归扫描所有 .lcm 文件）
+# Specify a directory (recursively scans all .lcm files)
 lcm topic echo EXAMPLE -f types/
 
-# 指定多个路径
+# Specify multiple paths
 lcm topic echo EXAMPLE -f types/ -f extra_types/
 
-# 指定具体类型名（当 .lcm 文件中有多个 struct 时）
+# Specify a concrete type name (when .lcm files contain multiple structs)
 lcm topic echo EXAMPLE -f types/ --type example_t
 ```
 
-支持完整的 LCM 类型系统：
-- 所有原始类型（`int8_t` ~ `int64_t`、`float`、`double`、`string`、`boolean`、`byte`）
-- 固定长度数组和变长数组（`double position[3]`、`int16_t ranges[num_ranges]`）
-- 多维数组（`int32_t data[size_a][size_b][size_c]`）
-- 嵌套结构体和跨文件类型引用
-- 递归类型（如链表 `node_t` 中的 `node_t children[n]`）
-- 常量声明（`const int32_t MAX_SIZE = 100`）
+Supports the complete LCM type system:
+- All primitive types (`int8_t` ~ `int64_t`, `float`, `double`, `string`, `boolean`, `byte`)
+- Fixed-length and variable-length arrays (`double position[3]`, `int16_t ranges[num_ranges]`)
+- Multi-dimensional arrays (`int32_t data[size_a][size_b][size_c]`)
+- Nested structs and cross-file type references
+- Recursive types (e.g., `node_t children[n]` in a linked-list `node_t`)
+- Constant declarations (`const int32_t MAX_SIZE = 100`)
 
-**工作原理**：解析 `.lcm` 文件 → 内存中构建解码类（`type()` 动态创建） → 按 payload 前 8 字节 fingerprint 自动匹配 → 解码并递归展开嵌套结构体。全程不生成任何文件。
+**How it works**: Parses `.lcm` files → builds decode classes in memory (`type()` dynamic creation) → auto-matches by the first 8-byte fingerprint of the payload → decodes and recursively expands nested structs. No files are generated at any point.
 
-### 方式二：传统 `lcm-gen` 生成文件
+### Method 2: Traditional `lcm-gen` generated files
 
 ```bash
-# 安装 lcm Python 包
-pip install -e ".[decode]"
+# Install the lcm Python package
+pip install lcm-cli[decode]
 
-# 先用 lcm-gen 生成 Python 文件，并配置 PYTHONPATH
+# Generate Python files with lcm-gen, then configure PYTHONPATH
 lcm-gen --python -d types/ types/example_t.lcm
 export PYTHONPATH=types:$PYTHONPATH
 
-# 使用 --type 指定解码类（module.Class 格式）
+# Use --type to specify the decode class (module.Class format)
 lcm topic echo EXAMPLE --type exlcm.example_t
 ```
 
-### 自定义组播地址
+### Custom Multicast Address
 
 ```bash
 lcm topic list --lcm-url 239.255.76.68 --lcm-port 7668
 ```
 
-### 统计说明
+### Statistics
 
-| 指标 | 说明 |
-|------|------|
-| Rate (Hz) | 滑动窗口内的消息频率（最近 2000 条消息）|
-| BW (KB/s) | 滑动窗口内的带宽 |
-| Avg Size (B) | 每个消息的平均字节数 |
-| Total (KB) | 累计传输总量 |
+| Metric | Description |
+|--------|-------------|
+| Rate (Hz) | Message frequency within a sliding window (last 2000 messages) |
+| BW (KB/s) | Bandwidth within the sliding window |
+| Avg Size (B) | Average bytes per message |
+| Total (KB) | Cumulative total transferred |
 
-## 架构
+## Architecture
 
 ```
-┌───────────────────────────────────────────────┐
-│                  CLI 层 (Typer)               │
-│   topic echo │ topic list │ topic stats│ node │
-├───────────────────────────────────────────────┤
-│            显示层 (Rich Panel)                │
-│   递归嵌套展开 │ hex dump │ 统计表格           │
-├───────────────────────────────────────────────┤
-│          类型解析层 (Pure Python)              │
-│   .lcm 解析 → AST → fingerprint → 动态类生成   │
-├───────────────────────────────────────────────┤
-│           协议层 (Raw UDP Socket)              │
-│     LCM Wire Protocol 解析（零依赖）            │
-├───────────────────────────────────────────────┤
-│           UDP 组播 (239.255.76.67)            │
-└───────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────┐
+│                  CLI Layer (Typer)                │
+│   topic echo │ topic list │ topic stats │ node    │
+├───────────────────────────────────────────────────┤
+│              Display Layer (Rich Panel)           │
+│   recursive nesting │ hex dump │ stats table      │
+├───────────────────────────────────────────────────┤
+│           Type Parsing Layer (Pure Python)        │
+│   .lcm parse → AST → fingerprint → dynamic class  │
+├───────────────────────────────────────────────────┤
+│            Protocol Layer (Raw UDP Socket)        │
+│       LCM Wire Protocol parsing (zero deps)       │
+├───────────────────────────────────────────────────┤
+│            UDP Multicast (239.255.76.67)          │
+└───────────────────────────────────────────────────┘
 ```
 
-- **零外部 LCM 依赖**：核心功能直接解析 UDP 组播数据包中的 LCM wire protocol
-- **内置类型解析**：纯 Python 实现的 `.lcm` 文件解析器 + 运行时解码类生成器
-- **节点发现**：通过 UDP 数据包的源 IP:port 推断不同发布者
-- **传统解码兼容**：可选依赖 `lcm` Python 包，支持 `--type module.Class` 方式
+- **Zero external LCM dependency**: Core functionality directly parses the LCM wire protocol from UDP multicast packets
+- **Built-in type parsing**: Pure-Python `.lcm` file parser + runtime decode class generator
+- **Node discovery**: Infers different publishers from UDP packet source IP:port
+- **Legacy decode compatible**: Optional `lcm` Python package for `--type module.Class` decoding
 
-## LCM 协议说明
+## LCM Protocol
 
-LCM 使用 UDP 组播进行通信（默认 `239.255.76.67:7667`）。
+LCM uses UDP multicast for communication (default `239.255.76.67:7667`).
 
-**短消息**（< 64KB）：8 字节头 (magic=0x4c433032 + seqno) + channel name (\0结尾) + payload
+**Short messages** (< 64KB): 8-byte header (magic=0x4c433032 + seqno) + channel name (null-terminated) + payload
 
-**分片消息**：20 字节头 (magic=0x4c433033 + seqno + payload_size + fragment_offset + fragment_no + n_fragments)
+**Fragmented messages**: 20-byte header (magic=0x4c433033 + seqno + payload_size + fragment_offset + fragment_no + n_fragments)
 
-参考：[LCM UDP Multicast Protocol](https://lcm-proj.github.io/lcm/content/udp-multicast-protocol.html)
+Reference: [LCM UDP Multicast Protocol](https://lcm-proj.github.io/lcm/content/udp-multicast-protocol.html)
 
-## LCM 与 ROS2 概念映射
+## LCM vs ROS2 Concepts
 
-| LCM 概念 | ROS2 对应 | 说明 |
-|----------|----------|------|
-| Channel | Topic | 消息发布/订阅的通道 |
-| UDP (IP:port) | Node | LCM 无原生 node 概念，通过发布者地址推断 |
-| Fingerprint | Message Type Hash | 消息类型的唯一标识 |
+| LCM Concept | ROS2 Equivalent | Description |
+|-------------|----------------|-------------|
+| Channel | Topic | Message publish/subscribe conduit |
+| UDP (IP:port) | Node | LCM has no native node concept; inferred from publisher address |
+| Fingerprint | Message Type Hash | Unique identifier for a message type |
 
-## 项目结构
+## Project Structure
 
 ```
 src/lcm_tools/
-├── cli.py                       # Typer 入口，注册子命令
+├── __init__.py                  # Package definition + version
+├── __main__.py                  # python -m lcm_tools entry point
+├── cli.py                       # Typer entry point, registers subcommands
 ├── commands/
-│   ├── topic_echo.py            # lcm topic echo
-│   ├── topic_list.py            # lcm topic list
-│   ├── topic_stats.py           # lcm topic stats
-│   └── node_list.py             # lcm node list
+│   ├── topic_echo.py            # lcm topic echo (with --csv/--jsonl export)
+│   ├── topic_list.py            # lcm topic list (with --watch mode)
+│   ├── topic_stats.py           # lcm topic stats (with --sort/--top/--freeze)
+│   ├── topic_bw.py              # lcm topic bw (bandwidth monitor)
+│   ├── topic_info.py            # lcm topic info (channel details)
+│   ├── node_list.py             # lcm node list (with --watch mode)
+│   ├── type_list.py             # lcm type list
+│   ├── type_show.py             # lcm type show
+│   ├── record.py                # lcm record
+│   └── play.py                  # lcm play
 ├── core/
-│   ├── discovery.py             # 被动通道/节点发现
-│   ├── stats.py                 # 实时统计（频率、带宽）
-│   ├── lcm_type_parser.py       # .lcm 文件解析器 + fingerprint 算法
-│   └── lcm_type_builder.py      # 运行时解码类生成 + TypeRegistry
+│   ├── discovery.py             # Passive channel/node discovery
+│   ├── stats.py                 # Real-time statistics (rate, bandwidth)
+│   ├── lcm_type_parser.py       # .lcm file parser + fingerprint algorithm
+│   └── lcm_type_builder.py      # Runtime decode class generation + TypeRegistry
 ├── display/
-│   ├── echo_display.py          # Rich 面板显示（含递归嵌套展开）
-│   └── stats_display.py         # 统计表格显示
-├── listener.py                  # UDP 组播监听线程
-└── protocol.py                  # LCM Wire Protocol 解析
+│   ├── echo_display.py          # Rich panel display (with recursive nesting)
+│   ├── stats_display.py         # Statistics table display (with sparkline)
+│   └── type_display.py          # Type structure table display
+├── export.py                    # Field extraction + CSV/JSONL writers
+├── lcm_log.py                   # LCM log file reader/writer (lcm-logger compatible)
+├── listener.py                  # UDP multicast listener thread
+├── protocol.py                  # LCM Wire Protocol parser
+└── source.py                    # PacketSource abstraction (live/offline)
 ```
 
-## 测试
+## Testing
 
 ```bash
 pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
-## 网络配置
+## Network Configuration
 
-如果收不到消息，请检查组播路由：
+If you can't receive messages, check your multicast routing:
 
 **macOS:**
 ```bash
-# 查看组播路由
+# View multicast routes
 netstat -rn | grep 239
 
-# 添加路由（如果需要）
+# Add route if needed
 sudo route add -net 239.255.76.0/24 -interface en0
 ```
 
 **Linux:**
 ```bash
-# 添加路由
+# Add route
 sudo ip route add 239.255.76.0/24 dev eth0
 ```
 
-## 许可证
+## License
 
 MIT

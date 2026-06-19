@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import time
 
-import pytest
 
 from lcm_tools.lcm_log import LogEvent, write_lcm_log
 from lcm_tools.protocol import PacketInfo

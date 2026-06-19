@@ -9,9 +9,8 @@ Supports three display modes:
 from __future__ import annotations
 
 import importlib
-import time
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel

@@ -14,7 +14,6 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
 
 import typer
 from rich.console import Console
@@ -31,18 +30,18 @@ def _default_filename() -> str:
 
 
 def record(
-    output: Optional[str] = typer.Option(
+    output: str | None = typer.Option(
         None,
         "--output",
         "-o",
         help="Output .log file. Default: lcm_<YYYYMMDD_HHMMSS>.log",
     ),
-    channel: Optional[str] = typer.Option(
+    channel: str | None = typer.Option(
         None,
         "--channel",
         help="Regex to filter channels (e.g. 'CAM.*'). Default: record all.",
     ),
-    duration: Optional[float] = typer.Option(
+    duration: float | None = typer.Option(
         None,
         "--duration",
         "-d",
@@ -67,7 +66,7 @@ def record(
             raise typer.Exit(code=1)
 
     # Buffer of events accumulated on the listener thread; flushed at the end.
-    events: List[LogEvent] = []
+    events: list[LogEvent] = []
     lock = threading.Lock()
     eventnum = [0]
 

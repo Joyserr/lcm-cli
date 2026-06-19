@@ -2,22 +2,32 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+*.egg
+
+# Distribution / packaging
+dist/
+build/
+*.tar.gz
+*.whl
 
 # Tests & coverage
 .pytest_cache/
 htmlcov/
 .coverage
+coverage.xml
 
-# Build artifacts
-dist/
-build/
-*.egg
+# Type checking
+.mypy_cache/
+
+# Linting
+.ruff_cache/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # LCM reference repo (not part of this project)
 lcm_ref/
@@ -25,9 +35,25 @@ lcm_ref/
 # lcm-gen generated Python types
 gen_types/
 
-# Virtual environment
+# Test LCM types (sample files)
+test_lcm_types/
+
+# Virtual environments
 venv/
+.venv-build/
+.env/
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+
+# Development scripts and internal docs
+scripts/
+docs/superpowers/
+
+# Temporary files
+tmp/
+temp/

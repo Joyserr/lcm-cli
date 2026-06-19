@@ -1,1 +1,1 @@
-"""Pytest fixtures for lcm-tools tests."""
+"""Pytest fixtures for lcm-cli tests."""

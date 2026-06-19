@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import threading
-from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from lcm_tools.cli import app

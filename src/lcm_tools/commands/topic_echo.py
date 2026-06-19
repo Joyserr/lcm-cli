@@ -14,10 +14,9 @@ from __future__ import annotations
 
 import queue
 import re
-import signal
 import sys
-import threading
-from typing import Any, List, Optional
+import time
+import typing
 
 import typer
 from rich.console import Console
@@ -29,8 +28,7 @@ from lcm_tools.display.echo_display import (
     echo_packet_raw,
     load_decode_class,
 )
-from lcm_tools.listener import run_listener
-from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, PacketInfo
+from lcm_tools.protocol import DEFAULT_MC_ADDR, DEFAULT_MC_PORT, PacketInfo, extract_fingerprint
 
 _console = Console()
 
@@ -41,13 +39,13 @@ def echo(
         help="Channel name to listen on. Use a regex pattern to match "
         "multiple channels (e.g. 'CAM.*').",
     ),
-    count: Optional[int] = typer.Option(
+    count: int | None = typer.Option(
         None,
         "--count",
         "-n",
         help="Stop after receiving this many messages.",
     ),
-    timeout: Optional[float] = typer.Option(
+    timeout: float | None = typer.Option(
         None,
         "--timeout",
         "-t",
@@ -58,13 +56,13 @@ def echo(
         "--raw",
         help="Compact raw-text output (suitable for piping).",
     ),
-    type_path: Optional[str] = typer.Option(
+    type_path: str | None = typer.Option(
         None,
         "--type",
         help="lcm-gen type for decoding, e.g. 'exlcm.example_t'. "
         "With --lcm-file, use just the struct name (e.g. 'example_t').",
     ),
-    lcm_files: Optional[List[str]] = typer.Option(
+    lcm_files: list[str] | None = typer.Option(
         None,
         "--lcm-file",
         "-f",
@@ -81,8 +79,56 @@ def echo(
         "--lcm-port",
         help="LCM multicast port.",
     ),
+    from_log: str | None = typer.Option(
+        None,
+        "--from",
+        help="Read from a .log file instead of live multicast (offline analysis).",
+    ),
+    csv_output: str | None = typer.Option(
+        None,
+        "--csv",
+        help="Export decoded messages to CSV file.",
+    ),
+    jsonl_output: str | None = typer.Option(
+        None,
+        "--jsonl",
+        help="Export decoded messages to JSON Lines file.",
+    ),
+    fields: list[str] | None = typer.Option(
+        None,
+        "--field",
+        help="Extract specific fields (e.g. 'position[0]', 'imu.accel.x'). Can repeat.",
+    ),
+    ts_format: str = typer.Option(
+        "epoch",
+        "--ts-format",
+        help="Timestamp format: epoch (default), iso, or lcm (microseconds).",
+    ),
 ) -> None:
     """Echo messages on an LCM channel (like ``ros2 topic echo``)."""
+    # Validate mutually exclusive options
+    if csv_output and jsonl_output:
+        _console.print("[red]Error:[/red] --csv and --jsonl are mutually exclusive.")
+        raise typer.Exit(code=1)
+
+    if fields and raw:
+        _console.print("[red]Error:[/red] --field cannot be used with --raw.")
+        raise typer.Exit(code=1)
+
+    if fields and not type_path and not lcm_files:
+        _console.print("[red]Error:[/red] --field requires --lcm-file or --type for decoding.")
+        raise typer.Exit(code=1)
+
+    # Parse field paths if provided
+    field_paths = []
+    if fields:
+        try:
+            from lcm_tools.export import FieldPath
+
+            field_paths = [FieldPath.parse(f) for f in fields]
+        except ValueError as exc:
+            _console.print(f"[red]Invalid field path:[/red] {exc}")
+            raise typer.Exit(code=1)
     # Compile channel filter
     try:
         pattern = re.compile(channel)
@@ -91,7 +137,7 @@ def echo(
         raise typer.Exit(code=1)
 
     # Build TypeRegistry from --lcm-file if provided
-    type_registry: Any = None
+    type_registry: typing.Any = None
     if lcm_files:
         try:
             from lcm_tools.core.lcm_type_builder import TypeRegistry
@@ -108,7 +154,7 @@ def echo(
             raise typer.Exit(code=1)
 
     # Resolve decode class
-    decode_cls: Any = None
+    decode_cls: typing.Any = None
     if type_path:
         if type_registry is not None:
             # Look up from registry (--lcm-file + --type)
@@ -129,7 +175,7 @@ def echo(
                 raise typer.Exit(code=1)
 
     # Thread-safe queue bridging the listener thread → main display thread
-    pkt_queue: "queue.Queue[Optional[PacketInfo]]" = queue.Queue(maxsize=5000)
+    pkt_queue: "queue.Queue[PacketInfo | None]" = queue.Queue(maxsize=5000)
 
     def _on_packet(pkt: PacketInfo) -> None:
         if pkt.has_channel and pattern.search(pkt.channel):  # type: ignore[arg-type]
@@ -138,19 +184,45 @@ def echo(
             except queue.Full:
                 pass  # drop oldest if producer outpaces display
 
-    stop_event = run_listener(
-        _on_packet,
+    # Use PacketSource abstraction for live or offline
+    from lcm_tools.source import make_source
+
+    source = make_source(
+        from_path=from_log,
         mc_addr=lcm_url,
         mc_port=lcm_port,
     )
+    stop_event = source.start(_on_packet)
 
     _console.print(
         f"[bold]Listening on '{channel}' ...[/bold]  "
         f"(multicast: {lcm_url}:{lcm_port}, Ctrl+C to stop)"
     )
 
+    # Initialize export writers if needed
+    csv_writer = None
+    jsonl_writer = None
+    is_export_mode = csv_output or jsonl_output
+
+    if is_export_mode:
+        # Disable rich output for clean export
+        _console.print(
+            "[dim]Export mode active (no terminal display). Progress on stderr.[/dim]"
+        )
+
+        if csv_output:
+            from lcm_tools.export import CsvWriter
+
+            csv_file = open(csv_output, "w", newline="")
+            csv_writer = CsvWriter(csv_file)
+
+        if jsonl_output:
+            from lcm_tools.export import JsonlWriter
+
+            jsonl_file = open(jsonl_output, "w")
+            jsonl_writer = JsonlWriter(jsonl_file)
+
     received = 0
-    import time
 
     last_match_time = time.monotonic()
 
@@ -169,6 +241,71 @@ def echo(
             received += 1
             last_match_time = time.monotonic()
 
+            # Export mode: decode and write to file
+            if is_export_mode and (csv_writer or jsonl_writer):
+                decoded_obj = None
+                timestamp = time.time()
+
+                # Try to decode if we have type info
+                if type_registry is not None:
+                    fp = extract_fingerprint(pkt.payload)
+                    if fp is not None:
+                        decode_cls = type_registry.find_by_fingerprint(fp)
+                        if decode_cls:
+                            try:
+                                decoded_obj = decode_cls.decode(pkt.payload)
+                            except Exception:
+                                pass  # Skip decode errors in export mode
+
+                # Build export data
+                export_data = {}
+
+                # Timestamp
+                if ts_format == "iso":
+                    from datetime import datetime
+
+                    export_data["timestamp"] = datetime.fromtimestamp(timestamp).isoformat()
+                elif ts_format == "lcm":
+                    export_data["timestamp"] = int(timestamp * 1_000_000)
+                else:
+                    export_data["timestamp"] = timestamp
+
+                export_data["channel"] = pkt.channel
+                export_data["seqno"] = pkt.seqno
+                export_data["size"] = pkt.packet_size
+
+                if decoded_obj and field_paths:
+                    # Field extraction mode
+                    from lcm_tools.export import FieldExtractor
+
+                    extracted = FieldExtractor.extract_multiple(decoded_obj, field_paths)
+                    export_data.update(extracted)
+                elif decoded_obj:
+                    # Full decode: flatten all fields
+                    for attr_name in getattr(decoded_obj, "__slots__", []):
+                        try:
+                            val = getattr(decoded_obj, attr_name)
+                            # Convert bytes to hex for JSON/CSV safety
+                            if isinstance(val, bytes):
+                                val = val.hex()
+                            export_data[attr_name] = val
+                        except AttributeError:
+                            pass
+                else:
+                    # No decode: export metadata only
+                    export_data["payload_hex"] = pkt.payload.hex()
+
+                # Write to exporters
+                if csv_writer:
+                    csv_writer.write_row(export_data)
+                if jsonl_writer:
+                    jsonl_writer.write_row(export_data)
+
+                # Progress every 100 messages
+                if received % 100 == 0:
+                    print(f"Exported {received} messages...", file=sys.stderr)
+                continue  # Skip terminal display in export mode
+
             if raw:
                 echo_packet_raw(pkt, received)
             elif decode_cls:
@@ -185,4 +322,9 @@ def echo(
         pass
     finally:
         stop_event.set()
+        # Close export writers
+        if csv_writer:
+            csv_writer.close()
+        if jsonl_writer:
+            jsonl_writer.close()
         _console.print(f"\n[dim]Received {received} message(s).[/dim]")

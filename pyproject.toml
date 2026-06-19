@@ -1,22 +1,55 @@
 [project]
-name = "lcm-tools"
-version = "0.1.0"
+name = "lcm-cli"
+version = "0.2.0"
 description = "ROS2-like command line tools for LCM (Lightweight Communications and Marshalling)"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
+keywords = ["lcm", "cli", "robotics", "middleware", "multicast", "debugging", "ros2"]
 authors = [
-    { name = "lcm-tools contributors" },
+    { name = "lcm-cli contributors" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Embedded Systems",
+    "Topic :: System :: Networking",
+    "Topic :: Utilities",
 ]
 dependencies = [
     "typer>=0.12.0",
     "rich>=13.0.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Joyserr/lcm-cli"
+Repository = "https://github.com/Joyserr/lcm-cli"
+Issues = "https://github.com/Joyserr/lcm-cli/issues"
+
 [project.optional-dependencies]
 decode = ["lcm>=1.5.0"]
 dev = [
     "pytest>=7.0",
     "pytest-timeout>=2.1",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+    "build>=0.10",
+    "twine>=4.0",
 ]
 
 [project.scripts]
@@ -28,6 +61,19 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lcm_tools"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "venv/",
+    "lcm_ref/",
+    "gen_types/",
+    "test_lcm_types/",
+    "scripts/",
+    ".pytest_cache/",
+    "__pycache__/",
+    "*.pyc",
+    ".gitignore",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

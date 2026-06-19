@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import struct
-from typing import Optional, Tuple
+from typing import Optional
 
 from lcm_tools.protocol import LCM2_MAGIC_LONG, LCM2_MAGIC_SHORT
 
