@@ -6,7 +6,7 @@ implements passive discovery by listening to all multicast traffic
 and recording metadata about each observed channel and sender.
 
 Nodes are identified by their UDP source address (IP:port), since
-LCM does not have a native "node name" concept like ROS2.
+LCM does not have a native "node name" concept.
 """
 
 from __future__ import annotations

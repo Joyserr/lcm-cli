@@ -1,4 +1,4 @@
-"""LCM CLI - ROS2-like command line tools for LCM middleware.
+"""LCM CLI - Command line tools for LCM middleware.
 
 Provides the ``lcm`` command with subcommands:
   lcm topic echo <channel>   — View real-time topic data
@@ -38,8 +38,8 @@ def version_callback(value: bool) -> None:
 app = typer.Typer(
     name="lcm",
     help="LCM command line tools — inspect and monitor LCM networks.\n\n"
-    "Similar to ROS2 CLI tools (ros2 topic echo, ros2 node list, etc.) "
-    "but for LCM (Lightweight Communications and Marshalling).",
+    "Provides topic, node, and type subcommands for monitoring and debugging "
+    "LCM (Lightweight Communications and Marshalling) networks.",
     no_args_is_help=True,
     add_completion=True,  # Enable shell completion
 )
@@ -83,7 +83,7 @@ app.add_typer(type_app, name="type")
 type_app.command(name="list", help="List registered types.")(type_list)
 type_app.command(name="show", help="Show type structure.")(type_show)
 
-# Top-level standalone commands (record/play mirror `ros2 bag record/play`)
+# Top-level standalone commands (record/play)
 app.command(name="record", help="Record live LCM traffic to a .log file.")(record)
 app.command(name="play", help="Replay an LCM .log file to the multicast network.")(play)
 

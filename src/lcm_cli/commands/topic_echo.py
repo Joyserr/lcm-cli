@@ -109,7 +109,7 @@ def echo(
         help="Timestamp format: epoch (default), iso, or lcm (microseconds).",
     ),
 ) -> None:
-    """Echo messages on an LCM channel (like ``ros2 topic echo``)."""
+    """Echo messages on an LCM channel."""
     # Validate mutually exclusive options
     if csv_output and jsonl_output:
         _console.print("[red]Error:[/red] --csv and --jsonl are mutually exclusive.")

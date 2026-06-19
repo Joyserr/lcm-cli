@@ -25,7 +25,7 @@ def bw(
     lcm_url: str = typer.Option(DEFAULT_MC_ADDR, "--lcm-url"),
     lcm_port: int = typer.Option(DEFAULT_MC_PORT, "--lcm-port"),
 ) -> None:
-    """Monitor bandwidth for a single LCM channel (like ``ros2 topic bw``)."""
+    """Monitor bandwidth for a single LCM channel."""
     collector = StatsCollector()
 
     def _on_packet(pkt):

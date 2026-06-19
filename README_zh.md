@@ -2,21 +2,21 @@
 
 [English](README.md) | **中文**
 
-> 类 ROS2 风格的 LCM 命令行工具集 — 用于监控和调试 LCM（Lightweight Communications and Marshalling）网络。
+> LCM 命令行工具集 — 用于监控和调试 LCM（Lightweight Communications and Marshalling）网络。
 
 ## 功能概览
 
 ```
-lcm topic echo <channel>   — 实时查看话题数据（类似 ros2 topic echo）
-lcm topic list             — 列出活跃话题/通道（类似 ros2 topic list）
-lcm topic stats            — 实时监控话题统计：频率、带宽、消息数、数据量（类似 ros2 topic hz）
+lcm topic echo <channel>   — 实时查看话题数据
+lcm topic list             — 列出活跃话题/通道
+lcm topic stats            — 实时监控话题统计：频率、带宽、消息数、数据量
 lcm topic bw <channel>     — 监控单通道带宽，支持 sparkline 趋势图
 lcm topic info <channel>   — 显示通道详细信息和类型结构
-lcm node list              — 列出发现的发布节点（类似 ros2 node list）
+lcm node list              — 列出发现的发布节点
 lcm type list              — 列出所有已注册的 LCM 类型
 lcm type show <type>       — 显示类型字段结构
-lcm record                 — 录制 LCM 流量到 .log 文件（类似 ros2 bag record）
-lcm play <file.log>        — 回放 .log 文件到组播网络（类似 ros2 bag play）
+lcm record                 — 录制 LCM 流量到 .log 文件
+lcm play <file.log>        — 回放 .log 文件到组播网络
 ```
 
 **亮点**:
@@ -263,6 +263,8 @@ LCM 使用 UDP 组播进行通信（默认 `239.255.76.67:7667`）。
 参考：[LCM UDP Multicast Protocol](https://lcm-proj.github.io/lcm/content/udp-multicast-protocol.html)
 
 ## LCM 与 ROS2 概念映射
+
+LCM 和 ROS2 有相似的发布/订阅通信模式，以下是概念对照：
 
 | LCM 概念 | ROS2 对应 | 说明 |
 |----------|----------|------|

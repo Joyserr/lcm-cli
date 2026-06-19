@@ -1,12 +1,12 @@
 [project]
 name = "lcm-cli"
 version = "0.2.0"
-description = "ROS2-like command line tools for LCM (Lightweight Communications and Marshalling)"
+description = "Command line tools for monitoring and debugging LCM (Lightweight Communications and Marshalling)"
 requires-python = ">=3.9"
 license = "MIT"
 license-files = ["LICENSE"]
 readme = "README.md"
-keywords = ["lcm", "cli", "robotics", "middleware", "multicast", "debugging", "ros2"]
+keywords = ["lcm", "cli", "robotics", "middleware", "multicast", "debugging"]
 authors = [
     { name = "lcm-cli contributors" },
 ]

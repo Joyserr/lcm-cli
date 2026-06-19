@@ -52,7 +52,7 @@ def list_channels(
         10.0, "--stale", help="Seconds without messages to consider channel stale."
     ),
 ) -> None:
-    """List active LCM channels (like ``ros2 topic list``)."""
+    """List active LCM channels."""
     discovery = ChannelDiscovery()
 
     # Use PacketSource for live/offline

@@ -73,7 +73,7 @@ def stats(
         help="Show bandwidth sparkline trend column",
     ),
 ) -> None:
-    """Show real-time channel statistics (like ``ros2 topic hz``)."""
+    """Show real-time channel statistics."""
     # Validate sort_by
     valid_sort_keys = {"name", "rate", "bw", "msgs"}
     if sort_by not in valid_sort_keys:

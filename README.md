@@ -2,21 +2,21 @@
 
 **[English](README.md)** | [中文](README_zh.md)
 
-> ROS2-style command line tools for monitoring and debugging LCM (Lightweight Communications and Marshalling) networks.
+> Command line tools for monitoring and debugging LCM (Lightweight Communications and Marshalling) networks.
 
 ## Features
 
 ```
-lcm topic echo <channel>   — View real-time topic data (like ros2 topic echo)
-lcm topic list             — List active topics/channels (like ros2 topic list)
-lcm topic stats            — Real-time topic stats: rate, bandwidth, msg count (like ros2 topic hz)
+lcm topic echo <channel>   — View real-time topic data
+lcm topic list             — List active topics/channels
+lcm topic stats            — Real-time topic stats: rate, bandwidth, msg count
 lcm topic bw <channel>     — Monitor bandwidth for a single channel with sparkline graph
 lcm topic info <channel>   — Detailed channel information with type structure
-lcm node list              — List discovered publisher nodes (like ros2 node list)
+lcm node list              — List discovered publisher nodes
 lcm type list              — List all registered LCM types
 lcm type show <type>       — Show type field structure
-lcm record                 — Record live LCM traffic to .log file (like ros2 bag record)
-lcm play <file.log>        — Replay .log file to multicast (like ros2 bag play)
+lcm record                 — Record live LCM traffic to .log file
+lcm play <file.log>        — Replay .log file to multicast
 ```
 
 **Highlights**:
@@ -263,6 +263,8 @@ LCM uses UDP multicast for communication (default `239.255.76.67:7667`).
 Reference: [LCM UDP Multicast Protocol](https://lcm-proj.github.io/lcm/content/udp-multicast-protocol.html)
 
 ## LCM vs ROS2 Concepts
+
+LCM and ROS2 share similar pub/sub communication patterns. Here's a concept mapping:
 
 | LCM Concept | ROS2 Equivalent | Description |
 |-------------|----------------|-------------|

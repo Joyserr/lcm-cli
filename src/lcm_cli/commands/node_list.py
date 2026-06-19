@@ -1,6 +1,6 @@
 """``lcm node list`` — discover and list publisher nodes.
 
-LCM has no native "node name" concept (unlike ROS2).  This command
+LCM has no native "node name" concept.  This command
 identifies publisher processes by their UDP source address (IP:port),
 grouped with the set of channels each has published to.
 
@@ -62,7 +62,7 @@ def list_nodes(
         10.0, "--stale", help="Seconds without messages to consider node stale."
     ),
 ) -> None:
-    """List discovered publisher nodes (like ``ros2 node list``).
+    """List discovered publisher nodes.
 
     Note: LCM does not have a native "node name" concept.  Nodes are
     identified here by their UDP source IP:port, which corresponds to
