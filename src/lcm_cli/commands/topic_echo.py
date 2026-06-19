@@ -20,6 +20,8 @@ import sys
 import time
 import typing
 
+from typing import List, Optional
+
 import typer
 from rich.console import Console
 
@@ -41,13 +43,13 @@ def echo(
         help="Channel name to listen on. Use a regex pattern to match "
         "multiple channels (e.g. 'CAM.*').",
     ),
-    count: int | None = typer.Option(
+    count: Optional[int] = typer.Option(
         None,
         "--count",
         "-n",
         help="Stop after receiving this many messages.",
     ),
-    timeout: float | None = typer.Option(
+    timeout: Optional[float] = typer.Option(
         None,
         "--timeout",
         "-t",
@@ -58,13 +60,13 @@ def echo(
         "--raw",
         help="Compact raw-text output (suitable for piping).",
     ),
-    type_path: str | None = typer.Option(
+    type_path: Optional[str] = typer.Option(
         None,
         "--type",
         help="lcm-gen type for decoding, e.g. 'exlcm.example_t'. "
         "With --lcm-file, use just the struct name (e.g. 'example_t').",
     ),
-    lcm_files: list[str] | None = typer.Option(
+    lcm_files: Optional[List[str]] = typer.Option(
         None,
         "--lcm-file",
         "-f",
@@ -81,22 +83,22 @@ def echo(
         "--lcm-port",
         help="LCM multicast port.",
     ),
-    from_log: str | None = typer.Option(
+    from_log: Optional[str] = typer.Option(
         None,
         "--from",
         help="Read from a .log file instead of live multicast (offline analysis).",
     ),
-    csv_output: str | None = typer.Option(
+    csv_output: Optional[str] = typer.Option(
         None,
         "--csv",
         help="Export decoded messages to CSV file.",
     ),
-    jsonl_output: str | None = typer.Option(
+    jsonl_output: Optional[str] = typer.Option(
         None,
         "--jsonl",
         help="Export decoded messages to JSON Lines file.",
     ),
-    fields: list[str] | None = typer.Option(
+    fields: Optional[List[str]] = typer.Option(
         None,
         "--field",
         help="Extract specific fields (e.g. 'position[0]', 'imu.accel.x'). Can repeat.",

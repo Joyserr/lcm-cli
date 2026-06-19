@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import time
 
+from typing import Optional
+
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -34,15 +36,15 @@ def info(
     lcm_port: int = typer.Option(
         DEFAULT_MC_PORT, "--lcm-port", help="LCM multicast port."
     ),
-    from_log: str | None = typer.Option(
+    from_log: Optional[str] = typer.Option(
         None, "--from", help="Read from a .log file instead of live multicast."
     ),
-    lcm_file: str | None = typer.Option(
+    lcm_file: Optional[str] = typer.Option(
         None,
         "--lcm-file",
         help="Path to a single .lcm type file to pre-load into the registry.",
     ),
-    lcm_dir: str | None = typer.Option(
+    lcm_dir: Optional[str] = typer.Option(
         None,
         "--lcm-dir",
         help="Directory containing .lcm type files to pre-load into the registry.",
@@ -50,7 +52,7 @@ def info(
 ) -> None:
     """Display detailed information about a specific LCM channel."""
     # Build type registry
-    type_registry: TypeRegistry | None = None
+    type_registry: Optional[TypeRegistry] = None
     if lcm_file or lcm_dir:
         type_registry = TypeRegistry()
         if lcm_file:

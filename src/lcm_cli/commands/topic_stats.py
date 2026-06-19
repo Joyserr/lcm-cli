@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import time
 
+from typing import Optional
+
 import typer
 from rich.console import Console
 from rich.live import Live
@@ -23,12 +25,12 @@ _console = Console()
 
 
 def stats(
-    channel: str | None = typer.Argument(
+    channel: Optional[str] = typer.Argument(
         None,
         help="Only monitor channels whose name contains this string. "
         "Leave empty to monitor all channels.",
     ),
-    duration: float | None = typer.Option(
+    duration: Optional[float] = typer.Option(
         None,
         "--duration",
         "-d",
@@ -45,7 +47,7 @@ def stats(
         "--lcm-port",
         help="LCM multicast port.",
     ),
-    from_log: str | None = typer.Option(
+    from_log: Optional[str] = typer.Option(
         None,
         "--from",
         help="Read from a .log file instead of live multicast.",
@@ -55,7 +57,7 @@ def stats(
         "--sort",
         help="Sort by: name (default), rate, bw, msgs",
     ),
-    top_n: int | None = typer.Option(
+    top_n: Optional[int] = typer.Option(
         None,
         "--top",
         help="Show only top N channels",

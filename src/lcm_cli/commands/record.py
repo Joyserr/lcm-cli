@@ -17,6 +17,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from typing import Optional
+
 import typer
 from rich.console import Console
 
@@ -32,18 +34,18 @@ def _default_filename() -> str:
 
 
 def record(
-    output: str | None = typer.Option(
+    output: Optional[str] = typer.Option(
         None,
         "--output",
         "-o",
         help="Output .log file. Default: lcm_<YYYYMMDD_HHMMSS>.log",
     ),
-    channel: str | None = typer.Option(
+    channel: Optional[str] = typer.Option(
         None,
         "--channel",
         help="Regex to filter channels (e.g. 'CAM.*'). Default: record all.",
     ),
-    duration: float | None = typer.Option(
+    duration: Optional[float] = typer.Option(
         None,
         "--duration",
         "-d",

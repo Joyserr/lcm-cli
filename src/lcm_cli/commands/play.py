@@ -15,6 +15,8 @@ import socket
 import struct
 import time
 
+from typing import Optional
+
 import typer
 from rich.console import Console
 
@@ -36,7 +38,7 @@ def play(
         1.0, "--speed", "-s", help="Playback speed multiplier (0.5=half, 2.0=double)."
     ),
     loop: bool = typer.Option(False, "--loop", help="Loop playback forever."),
-    channel: str | None = typer.Option(
+    channel: Optional[str] = typer.Option(
         None, "--channel", help="Regex to filter channels (e.g. 'CAM.*')."
     ),
     lcm_url: str = typer.Option(
@@ -72,7 +74,7 @@ def play(
     try:
         while True:
             played = 0
-            prev_ts_us: int | None = None
+            prev_ts_us: Optional[int] = None
             for ev in iter_lcm_log(file):
                 if pattern is not None and not pattern.search(ev.channel):
                     continue

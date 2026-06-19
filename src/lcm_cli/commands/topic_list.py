@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import time
 
+from typing import Optional
+
 import typer
 from rich.console import Console
 
@@ -38,7 +40,7 @@ def list_channels(
         "--lcm-port",
         help="LCM multicast port.",
     ),
-    from_log: str | None = typer.Option(
+    from_log: Optional[str] = typer.Option(
         None,
         "--from",
         help="Read from a .log file instead of live multicast.",
