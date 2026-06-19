@@ -258,7 +258,7 @@ def echo(
                                 pass  # Skip decode errors in export mode
 
                 # Build export data
-                export_data = {}
+                export_data: typing.Dict[str, typing.Any] = {}
 
                 # Timestamp
                 if ts_format == "iso":

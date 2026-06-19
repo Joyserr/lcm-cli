@@ -13,7 +13,7 @@ from __future__ import annotations
 import struct as _struct
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 from lcm_tools.core.lcm_type_parser import (
     LcmStruct,
@@ -68,7 +68,7 @@ def _is_primitive(type_name: str) -> bool:
 # Dynamic class builder
 # ---------------------------------------------------------------------------
 
-def _build_init(members: list) -> callable:
+def _build_init(members: list) -> Callable[..., Any]:
     """Build __init__ method that initialises all fields to defaults."""
 
     def __init__(self: Any) -> None:
@@ -126,12 +126,12 @@ def _build_fixed_init(type_name: str, dims: list, dim_idx: int) -> Any:
     return [_build_fixed_init(type_name, dims, dim_idx + 1) for _ in range(size)]
 
 
-def _build_decode_one(member_specs: list, type_registry: "TypeRegistry") -> callable:
+def _build_decode_one(member_specs: list, type_registry: "TypeRegistry") -> Callable[..., Any]:
     """Build _decode_one(buf) static method (raw function, not staticmethod)."""
 
     def _decode_one(buf: BytesIO) -> Any:
         # 'cls' is the class itself, accessed via the closure
-        self = _decode_one._owner_cls()
+        self = _decode_one._owner_cls()  # type: ignore[attr-defined]
         for ms in member_specs:
             _decode_member(self, buf, ms, type_registry)
         return self
@@ -172,7 +172,7 @@ def _decode_scalar(buf: BytesIO, type_name: str, registry: "TypeRegistry") -> An
         ref_cls = registry._classes_by_name.get(type_name)
         if ref_cls is None:
             raise ValueError(f"Unknown LCM type: {type_name}")
-        return ref_cls._decode_one(buf)
+        return ref_cls._decode_one(buf)  # type: ignore[attr-defined]
 
 
 def _resolve_dim_size(self: Any, dim: tuple) -> int:
@@ -295,7 +295,7 @@ def build_lcm_class(
     # Build decode (raw function)
     def decode(data: bytes) -> Any:
         if hasattr(data, "read"):
-            buf = data
+            buf: Any = data
         else:
             buf = BytesIO(data)
         if buf.read(8) != decode._owner_cls._get_packed_fingerprint():  # type: ignore[attr-defined]
@@ -355,7 +355,7 @@ def build_lcm_class(
     return cls
 
 
-def _build_hash_recursive(lcm_struct: LcmStruct, registry: "TypeRegistry") -> callable:
+def _build_hash_recursive(lcm_struct: LcmStruct, registry: "TypeRegistry") -> Callable[..., Any]:
     """Build _get_hash_recursive(parents) matching lcm-gen output (raw function)."""
     base_hash = lcm_struct.base_hash
     short_name = lcm_struct.short_name
@@ -503,7 +503,7 @@ class TypeRegistry:
         for lcm_file in sorted(p.rglob("*.lcm")):
             self.register_file(lcm_file)
 
-    def register_paths(self, paths: List[str | Path]) -> None:
+    def register_paths(self, paths: Sequence[Union[str, Path]]) -> None:
         """Register multiple files/directories."""
         for p in paths:
             path = Path(p)

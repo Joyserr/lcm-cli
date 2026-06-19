@@ -34,7 +34,7 @@ def build_type_list_table(
         parts = full_name.rsplit(".", 1)
         package = parts[0] if len(parts) > 1 else ""
 
-        fp_bytes = cls._get_packed_fingerprint()
+        fp_bytes = cls._get_packed_fingerprint()  # type: ignore[attr-defined]
         fp_int = int.from_bytes(fp_bytes, "big")
         fp_hex = fingerprint_to_hex(fp_int)
 
@@ -80,7 +80,7 @@ def build_type_show_table(struct: LcmStruct, registry: TypeRegistry) -> Table:
         if not _is_primitive(member.type_name):
             ref_cls = registry._classes_by_name.get(member.type_name)
             if ref_cls:
-                ref_fp = int.from_bytes(ref_cls._get_packed_fingerprint(), "big")
+                ref_fp = int.from_bytes(ref_cls._get_packed_fingerprint(), "big")  # type: ignore[attr-defined]
                 info = f"→ {member.type_name} ({fingerprint_to_hex(ref_fp)})"
 
         table.add_row(member.member_name, f"{type_str}{dims_str}", info)

@@ -15,7 +15,7 @@ from __future__ import annotations
 import struct
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Union
+from typing import Iterable, Iterator, Union
 
 # Sync word at the start of every event record.
 LCM_LOG_MAGIC: int = 0xEDA1DA01
@@ -33,7 +33,7 @@ class LogEvent:
     data: bytes
 
 
-def write_lcm_log(path: Union[str, Path], events: Iterator[LogEvent]) -> None:
+def write_lcm_log(path: Union[str, Path], events: Iterable[LogEvent]) -> None:
     """Write *events* to *path* in the standard LCM log format.
 
     Overwrites any existing file. *events* may be a list or any iterable;

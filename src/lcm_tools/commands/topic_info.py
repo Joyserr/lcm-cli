@@ -107,8 +107,8 @@ def info(
     info_table.add_column("Value")
 
     info_table.add_row("Channel", channel)
-    info_table.add_row("Messages", str(ch.total_messages))
-    info_table.add_row("Total Size", f"{ch.total_kb:.2f} KB")
+    info_table.add_row("Messages", str(ch.msg_count))
+    info_table.add_row("Total Size", f"{ch.total_bytes / 1024:.2f} KB")
     info_table.add_row("Avg Msg Size", f"{ch.avg_msg_size:.1f} bytes")
     info_table.add_row("Bandwidth", f"{ch.bandwidth_kbps:.2f} Kbps")
     info_table.add_row("Rate", f"{ch.frequency_hz:.1f} Hz")
@@ -123,7 +123,11 @@ def info(
                 info_table.add_row("Type", f"[green]{type_cls.__name__}[/green]")
                 
                 # Show type structure if available
-                struct = type_registry.get_struct(type_cls.__name__)
+                struct = None
+                for s in type_registry._structs:
+                    if s.full_name == type_cls.__name__ or s.short_name == type_cls.__name__:
+                        struct = s
+                        break
                 if struct:
                     _console.print(Panel(info_table, title="Channel Info"))
                     _console.print()

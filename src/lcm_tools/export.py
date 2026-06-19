@@ -222,7 +222,7 @@ class CsvWriter:
         self.file = file
         self.explicit_columns = columns
         self.field_paths = field_paths
-        self.writer: Optional[csv.writer] = None
+        self.writer: Optional[Any] = None
         self._header_written = False
         self._columns: Optional[List[str]] = None
 
