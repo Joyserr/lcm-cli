@@ -8,6 +8,8 @@ is wire-compatible with logs produced by ``lcm-logger``.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import re
 import socket
 import struct

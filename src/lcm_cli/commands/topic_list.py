@@ -7,6 +7,8 @@ total sizes, and publisher addresses.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import time
 
 import typer

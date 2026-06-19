@@ -12,6 +12,8 @@ Header = 4 + 8 + 8 + 4 + 4 = 28 bytes; struct format "!Iqqii".
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import struct
 from dataclasses import dataclass
 from pathlib import Path

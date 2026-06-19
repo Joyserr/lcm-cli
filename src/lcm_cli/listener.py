@@ -7,6 +7,8 @@ dispatches PacketInfo objects to registered callbacks.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import select
 import socket
 import struct

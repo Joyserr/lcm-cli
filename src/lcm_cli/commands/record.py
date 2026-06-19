@@ -9,6 +9,8 @@ log free of channel-less fragment noise.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import re
 import threading
 import time

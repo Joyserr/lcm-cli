@@ -11,6 +11,8 @@ LCM does not have a native "node name" concept like ROS2.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import threading
 import time
 from dataclasses import dataclass, field

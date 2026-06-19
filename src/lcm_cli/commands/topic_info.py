@@ -6,6 +6,8 @@ and publisher details for a specific channel.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import time
 
 import typer

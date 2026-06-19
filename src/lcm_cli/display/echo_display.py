@@ -8,6 +8,8 @@ Supports three display modes:
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import importlib
 from datetime import datetime
 from typing import Any

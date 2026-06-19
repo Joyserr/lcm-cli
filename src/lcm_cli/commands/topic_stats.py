@@ -7,6 +7,8 @@ data transfer for each observed channel.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import time
 
 import typer

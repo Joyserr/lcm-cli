@@ -6,6 +6,8 @@ per-channel statistics in the terminal.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 from typing import List, Optional
 
 from rich.console import Console

@@ -9,6 +9,8 @@ Provides the ``lcm`` command with subcommands:
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import typer
 
 from lcm_cli import __version__

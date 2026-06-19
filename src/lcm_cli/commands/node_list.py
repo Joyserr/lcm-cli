@@ -10,6 +10,8 @@ reaches this host within a configurable listening window.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import time
 
 import typer

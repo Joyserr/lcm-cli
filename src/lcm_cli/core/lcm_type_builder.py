@@ -10,6 +10,8 @@ Also provides TypeRegistry for fingerprint-based auto-matching.
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import struct as _struct
 from io import BytesIO
 from pathlib import Path

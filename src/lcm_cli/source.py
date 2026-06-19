@@ -8,6 +8,8 @@ about where its packets come from. This is the structural backbone that the
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import threading
 import time
 from typing import Callable, Optional, Protocol

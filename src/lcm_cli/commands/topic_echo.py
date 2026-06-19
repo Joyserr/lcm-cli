@@ -12,6 +12,8 @@ Supports four display modes:
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import queue
 import re
 import sys
