@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import struct as _struct
 
+import pytest
 
 from lcm_cli.core.lcm_type_builder import TypeRegistry
+
+_HAS_LCM_REF = os.path.isdir("lcm_ref/examples/types")
+_HAS_TEST_TYPES = os.path.isdir("test_lcm_types")
 
 
 # ---------------------------------------------------------------------------
@@ -71,6 +76,7 @@ class TestTypeRegistry:
         found = reg.find_by_fingerprint(fp_int)
         assert found is cls
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_register_dir(self) -> None:
         reg = TypeRegistry()
         reg.register_dir("lcm_ref/examples/types/")
@@ -246,6 +252,7 @@ class TestDynamicClasses:
         assert decoded.items[1].id == 2
         assert decoded.items[1].name == "beta"
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_recursive_type(self) -> None:
         """Test recursive type (node_t with children array)."""
         reg = TypeRegistry()
@@ -372,6 +379,7 @@ class TestFingerprintMatching:
 
 
 class TestExampleFiles:
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_example_t_roundtrip(self) -> None:
         reg = TypeRegistry()
         reg.register_dir("lcm_ref/examples/types/")
@@ -396,6 +404,7 @@ class TestExampleFiles:
         assert decoded.name == "test_msg"
         assert decoded.enabled is True
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_example_list_t_roundtrip(self) -> None:
         reg = TypeRegistry()
         reg.register_dir("lcm_ref/examples/types/")
@@ -423,6 +432,7 @@ class TestExampleFiles:
         assert decoded.examples[0].timestamp == 42
         assert decoded.examples[0].name == "item0"
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_muldim_array_t(self) -> None:
         reg = TypeRegistry()
         reg.register_dir("lcm_ref/examples/types/")
@@ -446,6 +456,7 @@ class TestExampleFiles:
         assert decoded.data == [[[1], [2]], [[3], [4]]]
         assert decoded.strarray == [["a"], ["b"]]
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_cross_file_reference(self) -> None:
         """Test that types from different files can reference each other."""
         reg = TypeRegistry()
@@ -458,6 +469,7 @@ class TestExampleFiles:
         ex_cls = reg.find_by_name("example_t")
         assert ex_cls is not None
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_sibling_auto_discovery(self) -> None:
         """register_file should auto-discover sibling .lcm files."""
         reg = TypeRegistry()
@@ -472,6 +484,7 @@ class TestExampleFiles:
         assert reg.find_by_name("node_t") is not None
         assert reg.find_by_name("muldim_array_t") is not None
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_nested_decode_via_auto_discovery(self) -> None:
         """End-to-end: single file -> auto-discover deps -> decode nested."""
         reg = TypeRegistry()
@@ -502,6 +515,7 @@ class TestExampleFiles:
 class TestDeepNesting:
     """Tests using the test_lcm_types/ directory with multi-level nesting."""
 
+    @pytest.mark.skipif(not _HAS_TEST_TYPES, reason="test_lcm_types/ not available")
     def test_formation_deep_nesting(self) -> None:
         """4-level nesting: formation -> robot -> pose -> point."""
         reg = TypeRegistry()
@@ -564,6 +578,7 @@ class TestDeepNesting:
         assert decoded.robots[0].sensors[0].values == [1.5, 2.5]
         assert decoded.cost_grid == [[10.0, 20.0]]
 
+    @pytest.mark.skipif(not _HAS_TEST_TYPES, reason="test_lcm_types/ not available")
     def test_tree_recursive_type(self) -> None:
         """Recursive tree_node_t with nested children."""
         reg = TypeRegistry()

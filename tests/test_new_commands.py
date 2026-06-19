@@ -1,5 +1,6 @@
 """Tests for topic bw, topic info, type list/show commands."""
 
+import re
 import tempfile
 from pathlib import Path
 
@@ -8,6 +9,11 @@ from typer.testing import CliRunner
 from lcm_cli.cli import app
 
 runner = CliRunner()
+
+
+def _strip_ansi(text: str) -> str:
+    """Remove ANSI escape sequences from text."""
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
 class TestTopicBw:
@@ -230,7 +236,8 @@ class TestTopicListWatch:
         """Test that --watch option exists."""
         result = runner.invoke(app, ["topic", "list", "--help"])
         assert result.exit_code == 0
-        assert "--watch" in result.stdout
+        plain = _strip_ansi(result.stdout)
+        assert "--watch" in plain
 
     def test_topic_list_with_watch_short_duration(self):
         """Test topic list with --watch (short duration to avoid hanging)."""
@@ -258,7 +265,8 @@ class TestNodeListWatch:
         """Test that --watch option exists in node list."""
         result = runner.invoke(app, ["node", "list", "--help"])
         assert result.exit_code == 0
-        assert "--watch" in result.stdout
+        plain = _strip_ansi(result.stdout)
+        assert "--watch" in plain
 
 
 class TestTopicStatsEnhanced:
@@ -268,25 +276,29 @@ class TestTopicStatsEnhanced:
         """Test that --sort option exists."""
         result = runner.invoke(app, ["topic", "stats", "--help"])
         assert result.exit_code == 0
-        assert "--sort" in result.stdout
+        plain = _strip_ansi(result.stdout)
+        assert "--sort" in plain
 
     def test_topic_stats_top_help(self):
         """Test that --top option exists."""
         result = runner.invoke(app, ["topic", "stats", "--help"])
         assert result.exit_code == 0
-        assert "--top" in result.stdout
+        plain = _strip_ansi(result.stdout)
+        assert "--top" in plain
 
     def test_topic_stats_freeze_help(self):
         """Test that --freeze option exists."""
         result = runner.invoke(app, ["topic", "stats", "--help"])
         assert result.exit_code == 0
-        assert "--freeze" in result.stdout
+        plain = _strip_ansi(result.stdout)
+        assert "--freeze" in plain
 
     def test_topic_stats_spark_help(self):
         """Test that --spark option exists."""
         result = runner.invoke(app, ["topic", "stats", "--help"])
         assert result.exit_code == 0
-        assert "--spark" in result.stdout
+        plain = _strip_ansi(result.stdout)
+        assert "--spark" in plain
 
     def test_topic_stats_with_log_file(self):
         """Test topic stats with --from log file."""

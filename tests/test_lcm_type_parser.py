@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from lcm_cli.core.lcm_type_parser import (
@@ -12,6 +14,8 @@ from lcm_cli.core.lcm_type_parser import (
     _hash_string_update,
     _lcm_struct_hash,
 )
+
+_HAS_LCM_REF = os.path.isdir("lcm_ref/examples/types")
 
 
 # ---------------------------------------------------------------------------
@@ -366,6 +370,7 @@ class TestHash:
 
 
 class TestParseExampleFiles:
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_example_t(self) -> None:
         structs = parse_lcm_file("lcm_ref/examples/types/example_t.lcm")
         assert len(structs) == 1
@@ -380,6 +385,7 @@ class TestParseExampleFiles:
         assert s.members[6].member_name == "enabled"
         assert s.members[6].type_name == "boolean"
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_node_t(self) -> None:
         structs = parse_lcm_file("lcm_ref/examples/types/node_t.lcm")
         assert len(structs) == 1
@@ -387,12 +393,14 @@ class TestParseExampleFiles:
         assert s.full_name == "exlcm.node_t"
         assert s.members[1].type_name == "exlcm.node_t"
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_example_list_t(self) -> None:
         structs = parse_lcm_file("lcm_ref/examples/types/example_list_t.lcm")
         assert len(structs) == 1
         s = structs[0]
         assert s.members[1].type_name == "exlcm.example_t"
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_muldim_array_t(self) -> None:
         structs = parse_lcm_file("lcm_ref/examples/types/muldim_array_t.lcm")
         s = structs[0]
@@ -400,6 +408,7 @@ class TestParseExampleFiles:
         assert data_m.member_name == "data"
         assert len(data_m.dimensions) == 3
 
+    @pytest.mark.skipif(not _HAS_LCM_REF, reason="lcm_ref/examples/types/ not available")
     def test_exampleconst_t(self) -> None:
         structs = parse_lcm_file("lcm_ref/examples/types/exampleconst_t.lcm")
         s = structs[0]
