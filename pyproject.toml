@@ -65,6 +65,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lcm_cli"]
+exclude = [
+    "src/lcm_cli/dashboard/frontend/node_modules/",
+    "src/lcm_cli/dashboard/frontend/tsconfig.tsbuildinfo",
+]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
