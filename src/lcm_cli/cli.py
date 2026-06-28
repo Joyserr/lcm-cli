@@ -22,6 +22,7 @@ from lcm_cli.commands.topic_echo import echo
 from lcm_cli.commands.topic_info import info
 from lcm_cli.commands.topic_list import list_channels
 from lcm_cli.commands.topic_stats import stats
+from lcm_cli.commands.dashboard_cmd import dashboard
 from lcm_cli.commands.type_list import type_list
 from lcm_cli.commands.type_show import type_show
 
@@ -83,7 +84,8 @@ app.add_typer(type_app, name="type")
 type_app.command(name="list", help="List registered types.")(type_list)
 type_app.command(name="show", help="Show type structure.")(type_show)
 
-# Top-level standalone commands (record/play)
+# Top-level standalone commands
+app.command(name="dashboard", help="Launch the LCM Dashboard web UI.")(dashboard)
 app.command(name="record", help="Record live LCM traffic to a .log file.")(record)
 app.command(name="play", help="Replay an LCM .log file to the multicast network.")(play)
 
