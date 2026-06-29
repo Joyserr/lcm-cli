@@ -244,6 +244,22 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
   background: var(--accent);
   flex-shrink: 0;
 }
+.channel-name .channel-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.channel-name .channel-hz {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(52, 199, 89, 0.1);
+}
 
 .field-list { list-style: none; padding: 2px 0 6px 0; }
 

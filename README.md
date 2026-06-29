@@ -17,10 +17,12 @@ lcm type list              — List all registered LCM types
 lcm type show <type>       — Show type field structure
 lcm record                 — Record live LCM traffic to .log file
 lcm play <file.log>        — Replay .log file to multicast
+lcm dashboard              — Launch web-based real-time visualization dashboard
 ```
 
 **Highlights**:
 - Built-in pure-Python `.lcm` file parser — no `lcm-gen` or `PYTHONPATH` needed
+- **Web Dashboard**: Foxglove-style real-time visualization in any browser (`lcm dashboard`)
 - **Message Export**: CSV/JSONL export with field extraction (`--csv`, `--jsonl`, `--field`)
 - **Advanced Monitoring**: Sort/filter stats (`--sort`, `--top`, `--freeze`, `--spark`)
 - **Live Watch Mode**: Continuous refresh for topic/node list (`--watch`)
@@ -39,9 +41,12 @@ pip install -e .
 
 # Optional: traditional lcm-gen Python package decode support
 pip install lcm-cli[decode]
+
+# Optional: web dashboard (FastAPI + uvicorn + WebSocket)
+pip install lcm-cli[dashboard]
 ```
 
-**Requirements**: Python >= 3.9, `typer`, `rich` (`lcm` package is optional, only for legacy `--type module.Class` decoding).
+**Requirements**: Python >= 3.9, `typer`, `rich`. Optional: `lcm` (legacy decode), `fastapi` + `uvicorn` (dashboard).
 
 ## Quick Start
 
@@ -84,6 +89,41 @@ lcm topic info CAMERA --lcm-file types/
 
 # List discovered publisher nodes
 lcm node list
+```
+
+## Dashboard
+
+The `lcm dashboard` command launches a web-based real-time visualization UI — similar to Foxglove but for LCM data. Accessible from any browser on the network.
+
+```bash
+# Install dashboard dependencies
+pip install lcm-cli[dashboard]
+
+# Launch the dashboard (default: http://0.0.0.0:8080)
+lcm dashboard --lcm-file types/
+
+# Custom port and bind address
+lcm dashboard --lcm-file types/ --port 9000 --bind 0.0.0.0
+
+# Replay from a log file instead of live multicast
+lcm dashboard --from recording.log --lcm-file types/
+```
+
+**Features**:
+- **Real-time plotting**: Click any numeric field to plot it as a live curve (powered by uPlot)
+- **Frame rate display**: Each topic shows its current Hz in real-time
+- **Cross-topic comparison**: Compare mode lets you overlay fields from different channels on the same panel
+- **Multi-panel layout**: Add/remove/rename plot panels; each panel supports multiple curves
+- **Per-series statistics**: Last/Min/Max/Avg values displayed for each curve
+- **Pause/Resume**: Globally pause data flow to inspect a specific moment
+- **Remote access**: Bind to `0.0.0.0` to view from any device on the network
+- **Apple-inspired UI**: Clean, modern interface with frosted glass effects
+
+**Tech stack**: FastAPI (backend) + React/TypeScript + uPlot (frontend) + WebSocket (real-time data push)
+
+**Test data publisher** (for development/testing):
+```bash
+python3 scripts/publish_test.py --loop --count 50 --interval 2.0 --lcm-file test_lcm_types/
 ```
 
 ## Recording & Playback
@@ -289,12 +329,20 @@ src/lcm_cli/
 │   ├── type_list.py             # lcm type list
 │   ├── type_show.py             # lcm type show
 │   ├── record.py                # lcm record
-│   └── play.py                  # lcm play
+│   ├── play.py                  # lcm play
+│   └── dashboard_cmd.py         # lcm dashboard (web UI launcher)
 ├── core/
 │   ├── discovery.py             # Passive channel/node discovery
 │   ├── stats.py                 # Real-time statistics (rate, bandwidth)
 │   ├── lcm_type_parser.py       # .lcm file parser + fingerprint algorithm
 │   └── lcm_type_builder.py      # Runtime decode class generation + TypeRegistry
+├── dashboard/                   # Web dashboard (FastAPI + React + WebSocket)
+│   ├── server.py                # FastAPI app: REST API + WebSocket handler
+│   ├── data_bridge.py           # LCM packet → WebSocket data bridge
+│   ├── field_extractor.py       # Recursive numeric field extraction
+│   ├── ring_buffer.py           # Per-channel time-windowed buffer
+│   ├── frontend/                # React + TypeScript + uPlot frontend
+│   └── static/                  # Built frontend assets (served by FastAPI)
 ├── display/
 │   ├── echo_display.py          # Rich panel display (with recursive nesting)
 │   ├── stats_display.py         # Statistics table display (with sparkline)

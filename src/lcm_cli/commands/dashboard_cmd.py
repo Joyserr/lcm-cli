@@ -39,8 +39,6 @@ def dashboard(
         )
         raise typer.Exit(code=1)
 
-    import asyncio
-
     from lcm_cli.dashboard.data_bridge import DataBridge
     from lcm_cli.dashboard.server import create_app
     from lcm_cli.source import make_source
@@ -63,14 +61,14 @@ def dashboard(
     if type_registry:
         bridge.set_type_registry(type_registry)
 
-    app = create_app(bridge=bridge)
-
     # Create data source
     source = make_source(
         from_path=from_log,
         mc_addr=lcm_url,
         mc_port=lcm_port,
     )
+
+    app = create_app(bridge=bridge, source=source)
 
     # Print startup info
     console.print(f"\n[bold green]LCM Dashboard[/bold green]")
@@ -81,10 +79,8 @@ def dashboard(
         console.print(f"  Source: Live multicast [cyan]{lcm_url}:{lcm_port}[/cyan]")
     console.print(f"  Press Ctrl+C to stop.\n")
 
-    # Start data source and server
-    loop = asyncio.new_event_loop()
-    bridge.start(source, loop)
-
+    # Start uvicorn — the FastAPI startup handler will set the bridge's
+    # event loop and start the data source on the correct running loop.
     try:
         uvicorn.run(app, host=bind, port=port, log_level="info", ws="websockets")
     except KeyboardInterrupt:

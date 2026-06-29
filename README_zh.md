@@ -17,10 +17,12 @@ lcm type list              — 列出所有已注册的 LCM 类型
 lcm type show <type>       — 显示类型字段结构
 lcm record                 — 录制 LCM 流量到 .log 文件
 lcm play <file.log>        — 回放 .log 文件到组播网络
+lcm dashboard              — 启动 Web 可视化仪表盘
 ```
 
 **亮点**:
 - 内置纯 Python `.lcm` 文件解析器，无需安装 `lcm-gen` 或配置 `PYTHONPATH`
+- **Web 仪表盘**: 类 Foxglove 的实时可视化界面，支持任意浏览器访问（`lcm dashboard`）
 - **消息导出**: 支持 CSV/JSONL 导出，可提取指定字段（`--csv`, `--jsonl`, `--field`）
 - **高级监控**: 统计排序/筛选（`--sort`, `--top`, `--freeze`, `--spark`）
 - **实时刷新**: topic/node list 支持持续刷新模式（`--watch`）
@@ -39,9 +41,12 @@ pip install -e .
 
 # 如需传统 lcm-gen Python 包解码支持（可选）
 pip install lcm-cli[decode]
+
+# 如需 Web 仪表盘功能（可选）
+pip install lcm-cli[dashboard]
 ```
 
-**依赖**: Python >= 3.9, `typer`, `rich`（`lcm` 包为可选依赖，仅用于传统 `--type module.Class` 方式解码）。
+**依赖**: Python >= 3.9, `typer`, `rich`。可选依赖：`lcm`（传统解码）、`fastapi` + `uvicorn`（仪表盘）。
 
 ## 快速开始
 
@@ -84,6 +89,41 @@ lcm topic info CAMERA --lcm-file types/
 
 # 列出发现的发布节点
 lcm node list
+```
+
+## Web 仪表盘
+
+`lcm dashboard` 命令启动一个基于 Web 的实时可视化界面 —— 类似 Foxglove 但专为 LCM 数据设计。支持局域网内任意浏览器访问。
+
+```bash
+# 安装仪表盘依赖
+pip install lcm-cli[dashboard]
+
+# 启动仪表盘（默认地址: http://0.0.0.0:8080）
+lcm dashboard --lcm-file types/
+
+# 自定义端口和绑定地址
+lcm dashboard --lcm-file types/ --port 9000 --bind 0.0.0.0
+
+# 从日志文件回放（而非实时组播）
+lcm dashboard --from recording.log --lcm-file types/
+```
+
+**功能特性**:
+- **实时曲线绘制**: 点击任意数值字段即可绘制实时曲线（基于 uPlot）
+- **帧率显示**: 每个话题实时显示当前帧率（Hz）
+- **跨话题对比**: Compare 模式可将不同通道的字段叠加在同一面板中对比
+- **多面板布局**: 可添加/删除/重命名图表面板，每个面板支持多条曲线
+- **逐序列统计**: 每条曲线显示 Last/Min/Max/Agg 统计值
+- **暂停/恢复**: 全局暂停数据流以检查特定时刻
+- **远程访问**: 绑定 `0.0.0.0` 即可从网络中任意设备查看
+- **Apple 风格 UI**: 简洁现代的界面设计，毛玻璃效果
+
+**技术栈**: FastAPI（后端）+ React/TypeScript + uPlot（前端）+ WebSocket（实时数据推送）
+
+**测试数据发布器**（用于开发/测试）:
+```bash
+python3 scripts/publish_test.py --loop --count 50 --interval 2.0 --lcm-file test_lcm_types/
 ```
 
 ## 录制与回放
@@ -289,12 +329,20 @@ src/lcm_cli/
 │   ├── type_list.py             # lcm type list
 │   ├── type_show.py             # lcm type show
 │   ├── record.py                # lcm record
-│   └── play.py                  # lcm play
+│   ├── play.py                  # lcm play
+│   └── dashboard_cmd.py         # lcm dashboard（Web 仪表盘启动）
 ├── core/
 │   ├── discovery.py             # 被动通道/节点发现
 │   ├── stats.py                 # 实时统计（频率、带宽）
 │   ├── lcm_type_parser.py       # .lcm 文件解析器 + fingerprint 算法
 │   └── lcm_type_builder.py      # 运行时解码类生成 + TypeRegistry
+├── dashboard/                   # Web 仪表盘（FastAPI + React + WebSocket）
+│   ├── server.py                # FastAPI 应用：REST API + WebSocket 处理器
+│   ├── data_bridge.py           # LCM 数据包 → WebSocket 数据桥接
+│   ├── field_extractor.py       # 递归数值字段提取
+│   ├── ring_buffer.py           # 按频道时间窗口缓存
+│   ├── frontend/                # React + TypeScript + uPlot 前端
+│   └── static/                  # 构建后的前端静态资源（由 FastAPI 提供服务）
 ├── display/
 │   ├── echo_display.py          # Rich 面板显示（含递归嵌套展开）
 │   ├── stats_display.py         # 统计表格显示（含 sparkline）

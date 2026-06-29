@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { fetchChannels, fetchSchema } from '../api';
-import type { ChannelSchema } from '../types';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { fetchChannelsInfo, fetchSchema } from '../api';
+import type { ChannelSchema, ChannelInfo } from '../types';
 
 interface ChannelPanelProps {
   onFieldSelect: (channel: string, field: string) => void;
@@ -22,16 +22,20 @@ export function ChannelPanel({
   onCompareToggle,
   refreshTrigger,
 }: ChannelPanelProps) {
-  const [channels, setChannels] = useState<string[]>([]);
+  const [channels, setChannels] = useState<ChannelInfo[]>([]);
   const [expandedChannels, setExpandedChannels] = useState<Set<string>>(new Set());
   const [schemas, setSchemas] = useState<Record<string, ChannelSchema[]>>({});
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const refresh = useCallback(() => {
-    fetchChannels().then(setChannels).catch(() => setChannels([]));
+    fetchChannelsInfo().then(setChannels).catch(() => setChannels([]));
   }, []);
 
   useEffect(() => {
     refresh();
+    // Periodic refresh every 2 seconds to discover new channels and update Hz
+    intervalRef.current = setInterval(refresh, 2000);
+    return () => clearInterval(intervalRef.current);
   }, [refreshTrigger, refresh]);
 
   const toggleChannel = async (ch: string) => {
@@ -82,23 +86,26 @@ export function ChannelPanel({
             </div>
           )}
 
-          <div className="sidebar-section-label">Topics</div>
+          <div className="sidebar-section-label">Topics ({channels.length})</div>
           <ul className="channel-list">
             {channels.map((ch, idx) => (
-              <li key={ch}>
-                <div className="channel-name" onClick={() => toggleChannel(ch)}>
-                  <span className="chevron">{expandedChannels.has(ch) ? '▾' : '▸'}</span>
+              <li key={ch.name}>
+                <div className="channel-name" onClick={() => toggleChannel(ch.name)}>
+                  <span className="chevron">{expandedChannels.has(ch.name) ? '▾' : '▸'}</span>
                   <span className="channel-dot" style={{ background: DOT_COLORS[idx % DOT_COLORS.length] }} />
-                  {ch}
+                  <span className="channel-label">{ch.name}</span>
+                  <span className="channel-hz" title="Frame rate">
+                    {ch.frame_rate > 0 ? `${ch.frame_rate.toFixed(1)} Hz` : '—'}
+                  </span>
                 </div>
-                {expandedChannels.has(ch) && schemas[ch] && (
+                {expandedChannels.has(ch.name) && schemas[ch.name] && (
                   <ul className="field-list">
-                    {schemas[ch].map((f) => (
+                    {schemas[ch.name].map((f) => (
                       <li
                         key={f.path}
                         className="field-item"
-                        onClick={() => handleFieldClick(ch, f.path)}
-                        style={isSelected(ch, f.path) ? { background: 'var(--bg-active)', color: 'var(--accent)' } : undefined}
+                        onClick={() => handleFieldClick(ch.name, f.path)}
+                        style={isSelected(ch.name, f.path) ? { background: 'var(--bg-active)', color: 'var(--accent)' } : undefined}
                       >
                         <span className="field-type-badge">num</span>
                         {f.path}

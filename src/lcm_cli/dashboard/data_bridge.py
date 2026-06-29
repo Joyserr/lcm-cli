@@ -12,6 +12,7 @@ import asyncio
 import logging
 import threading
 import time
+from collections import deque
 from typing import Any, Optional
 
 from lcm_cli.dashboard.field_extractor import extract_numeric_fields, get_field_schema
@@ -33,6 +34,7 @@ class DataBridge:
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._stop_event: Optional[threading.Event] = None
         self._type_registry: Any = None  # TypeRegistry if provided
+        self._frame_times: dict[str, deque[float]] = {}  # channel → recent timestamps for Hz
 
     @property
     def is_running(self) -> bool:
@@ -45,6 +47,10 @@ class DataBridge:
     def set_type_registry(self, registry: Any) -> None:
         """Set the TypeRegistry for fingerprint-based auto-decode."""
         self._type_registry = registry
+
+    def set_loop(self, loop: asyncio.AbstractEventLoop) -> None:
+        """Set the asyncio event loop (called from FastAPI startup handler)."""
+        self._loop = loop
 
     # -- Subscriber management --
 
@@ -95,6 +101,11 @@ class DataBridge:
             self._buffers[channel] = RingBuffer(self._buffer_duration)
         self._buffers[channel].append(timestamp, fields)
 
+        # Track frame rate (keep last 100 timestamps ≈ 10s at 10Hz)
+        if channel not in self._frame_times:
+            self._frame_times[channel] = deque(maxlen=100)
+        self._frame_times[channel].append(timestamp)
+
         # Distribute to subscribers
         msg = {"channel": channel, "timestamp": timestamp, "data": fields}
         for ws_id in self._channel_subs.get(channel, set()):
@@ -126,6 +137,27 @@ class DataBridge:
     def get_channels(self) -> list[str]:
         return sorted(self._buffers.keys())
 
+    def get_channels_info(self) -> list[dict[str, Any]]:
+        """Return channel list with frame rate info."""
+        result: list[dict[str, Any]] = []
+        for ch in sorted(self._buffers.keys()):
+            result.append({
+                "name": ch,
+                "frame_rate": self.get_frame_rate(ch),
+                "field_count": len(self._schemas.get(ch, [])),
+            })
+        return result
+
+    def get_frame_rate(self, channel: str) -> float:
+        """Compute current frame rate (Hz) for a channel."""
+        times = self._frame_times.get(channel, deque())
+        if len(times) < 2:
+            return 0.0
+        elapsed = times[-1] - times[0]
+        if elapsed <= 0:
+            return 0.0
+        return round((len(times) - 1) / elapsed, 1)
+
     def get_schema(self, channel: str) -> list[dict[str, str]] | None:
         return self._schemas.get(channel)
 
@@ -143,13 +175,8 @@ class DataBridge:
 
     # -- Lifecycle --
 
-    def start(
-        self,
-        source: Any,
-        loop: asyncio.AbstractEventLoop,
-    ) -> None:
-        """Start consuming packets from a PacketSource."""
-        self._loop = loop
+    def start_source(self, source: Any) -> None:
+        """Start consuming packets from a PacketSource (loop must be set first)."""
         self._stop_event = source.start(self.on_packet)
 
     def stop(self) -> None:

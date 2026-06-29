@@ -22,10 +22,11 @@ from lcm_cli.dashboard.data_bridge import DataBridge
 _STATIC_DIR = Path(__file__).resolve().parent.parent / "static" / "dashboard"
 
 
-def create_app(bridge: DataBridge | None = None) -> FastAPI:
-    """Create the FastAPI application with the given DataBridge."""
+def create_app(bridge: DataBridge | None = None, source: Any = None) -> FastAPI:
+    """Create the FastAPI application with the given DataBridge and source."""
     app = FastAPI(title="LCM Dashboard", version="1.0")
     _bridge = bridge or DataBridge()
+    _source = source
 
     # Serve frontend static files if built
     if _STATIC_DIR.exists() and (_STATIC_DIR / "index.html").exists():
@@ -47,6 +48,10 @@ def create_app(bridge: DataBridge | None = None) -> FastAPI:
     @app.get("/api/channels")
     async def list_channels() -> list[str]:
         return _bridge.get_channels()
+
+    @app.get("/api/channels/info")
+    async def list_channels_info() -> list[dict[str, Any]]:
+        return _bridge.get_channels_info()
 
     @app.get("/api/channels/{name}/schema")
     async def get_schema(name: str) -> Any:
@@ -77,38 +82,51 @@ def create_app(bridge: DataBridge | None = None) -> FastAPI:
         queue: asyncio.Queue = asyncio.Queue()
         _bridge.register_ws_queue(ws_id, queue)
 
+        async def receive_subs() -> None:
+            """Background task: listen for subscription messages from client."""
+            while True:
+                raw = await websocket.receive_text()
+                msg = json.loads(raw)
+                action = msg.get("action")
+                if action == "subscribe":
+                    _bridge.add_subscriber(
+                        ws_id,
+                        msg.get("channels", []),
+                        msg.get("fields"),
+                    )
+                elif action == "unsubscribe":
+                    _bridge.remove_subscriber(ws_id)
+
+        sub_task = asyncio.create_task(receive_subs())
+
         try:
             while True:
-                # Try to push data to client
                 try:
-                    data = await asyncio.wait_for(queue.get(), timeout=0.5)
+                    data = await asyncio.wait_for(queue.get(), timeout=1.0)
                     await websocket.send_json(data)
                 except asyncio.TimeoutError:
-                    pass
-
-                # Check for incoming subscription messages (non-blocking)
-                try:
-                    raw = await asyncio.wait_for(websocket.receive_text(), timeout=0.01)
-                    msg = json.loads(raw)
-                    action = msg.get("action")
-                    if action == "subscribe":
-                        _bridge.add_subscriber(
-                            ws_id,
-                            msg.get("channels", []),
-                            msg.get("fields"),
-                        )
-                    elif action == "unsubscribe":
-                        _bridge.remove_subscriber(ws_id)
-                        # Re-subscribe with remaining channels
-                except asyncio.TimeoutError:
-                    pass
-                except json.JSONDecodeError:
-                    pass
+                    # Check if client is still connected
+                    if sub_task.done():
+                        break
         except WebSocketDisconnect:
             pass
         except Exception:
             pass
         finally:
+            sub_task.cancel()
             _bridge.remove_subscriber(ws_id)
+
+    @app.on_event("startup")
+    async def startup_event() -> None:
+        """Set the running event loop on the bridge and start the data source."""
+        loop = asyncio.get_running_loop()
+        _bridge.set_loop(loop)
+        if _source is not None:
+            _bridge.start_source(_source)
+
+    @app.on_event("shutdown")
+    async def shutdown_event() -> None:
+        """Stop the data source on shutdown."""
+        _bridge.stop()
 
     return app

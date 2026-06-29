@@ -1,10 +1,19 @@
-import type { ChannelSchema } from './types';
+import type { ChannelSchema, ChannelInfo } from './types';
 
 const BASE = '';
 
 export async function fetchChannels(): Promise<string[]> {
   try {
     const res = await fetch(`${BASE}/api/channels`);
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchChannelsInfo(): Promise<ChannelInfo[]> {
+  try {
+    const res = await fetch(`${BASE}/api/channels/info`);
     return res.json();
   } catch {
     return [];

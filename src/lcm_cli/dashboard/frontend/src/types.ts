@@ -3,6 +3,12 @@ export interface ChannelSchema {
   type: string;
 }
 
+export interface ChannelInfo {
+  name: string;
+  frame_rate: number;
+  field_count: number;
+}
+
 export interface WsMessage {
   channel: string;
   timestamp: number;
