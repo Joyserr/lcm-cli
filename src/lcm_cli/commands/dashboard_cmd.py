@@ -86,7 +86,7 @@ def dashboard(
     bridge.start(source, loop)
 
     try:
-        uvicorn.run(app, host=bind, port=port, log_level="info")
+        uvicorn.run(app, host=bind, port=port, log_level="info", ws="websockets")
     except KeyboardInterrupt:
         pass
     finally:
