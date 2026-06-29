@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from lcm_cli.dashboard.data_bridge import DataBridge
@@ -27,6 +28,27 @@ def create_app(bridge: DataBridge | None = None, source: Any = None) -> FastAPI:
     app = FastAPI(title="LCM Dashboard", version="1.0")
     _bridge = bridge or DataBridge()
     _source = source
+
+    # Allow cross-origin access (e.g. accessing dashboard from another machine)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Favicon — inline SVG data to avoid 404
+    _FAVICON_SVG = (
+        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        b'<rect width="32" height="32" rx="7" fill="#0a84ff"/>'
+        b'<path d="M8 22 L12 14 L16 18 L20 10 L24 16" stroke="white" stroke-width="2.5"'
+        b' fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    )
+
+    @app.get("/favicon.ico")
+    async def favicon() -> Response:
+        return Response(content=_FAVICON_SVG, media_type="image/svg+xml")
 
     # Serve frontend static files if built
     if _STATIC_DIR.exists() and (_STATIC_DIR / "index.html").exists():
