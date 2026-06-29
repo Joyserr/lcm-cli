@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Toolbar } from './Toolbar';
 import { ChannelPanel } from './ChannelPanel';
 import { PlotPanel } from './PlotPanel';
@@ -26,7 +26,11 @@ export function Dashboard() {
   ]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [activePanelId, setActivePanelId] = useState<string>('panel-1');
   const { data, handleMessage } = useChannelData();
+
+  // Track subscribed channels to avoid duplicate subscribe messages
+  const subscribedChannels = useRef<Set<string>>(new Set());
 
   // Compare mode state
   const [compareMode, setCompareMode] = useState(false);
@@ -47,19 +51,47 @@ export function Dashboard() {
 
   const { connected, subscribe } = useWebSocket(wsOnMessage);
 
-  // Single field click (non-compare mode): add to first empty panel or create new
+  // Ensure activePanelId always points to an existing panel
+  useEffect(() => {
+    if (!panels.find((p) => p.id === activePanelId)) {
+      setActivePanelId(panels[0]?.id ?? 'panel-1');
+    }
+  }, [panels, activePanelId]);
+
+  // Subscribe to a channel (only if not already subscribed)
+  const ensureSubscribed = useCallback((channel: string) => {
+    if (subscribedChannels.current.has(channel)) return;
+    subscribedChannels.current.add(channel);
+    try {
+      subscribe([channel]);
+    } catch {
+      // Ignore WebSocket errors — don't block state updates
+    }
+  }, [subscribe]);
+
+  // Single field click (non-compare mode): add to active panel
   const handleFieldSelect = useCallback(
     (channel: string, field: string) => {
+      // Build a unique label: if same channel.field already exists in target panel, append (#2)
+      const targetPanel = panels.find((p) => p.id === activePanelId) || panels[0];
+      const existingCount = targetPanel
+        ? targetPanel.series.filter((s) => s.channel === channel && s.field === field).length
+        : 0;
+      const label = existingCount > 0
+        ? `${channel}.${field} (#${existingCount + 1})`
+        : `${channel}.${field}`;
+
       const newSeries: PlotSeries = {
         channel,
         field,
-        label: `${channel}.${field}`,
+        label,
         color: nextColor(),
       };
-      subscribe([channel], [field]);
+
+      ensureSubscribed(channel);
 
       setPanels((prev) => {
-        const target = prev.find((p) => p.series.length === 0) || prev[0];
+        const target = prev.find((p) => p.id === activePanelId) || prev[0];
         return prev.map((p) =>
           p.id === target.id
             ? { ...p, series: [...p.series, newSeries] }
@@ -67,7 +99,7 @@ export function Dashboard() {
         );
       });
     },
-    [subscribe]
+    [activePanelId, panels, ensureSubscribed]
   );
 
   // Compare mode: toggle field in selection
@@ -92,16 +124,18 @@ export function Dashboard() {
       color: nextColor(),
     }));
 
-    // Subscribe all
-    const channels = [...new Set(compareSelection.map((s) => s.channel))];
-    subscribe(channels);
+    // Subscribe all channels (only new ones)
+    for (const ch of new Set(compareSelection.map((s) => s.channel))) {
+      ensureSubscribed(ch);
+    }
 
     const id = `panel-${++panelIdCounter}`;
     const title = `Compare (${compareSelection.length} fields)`;
     setPanels((prev) => [...prev, { id, title, series: newSeries }]);
+    setActivePanelId(id);
     setCompareSelection([]);
     setCompareMode(false);
-  }, [compareSelection, subscribe]);
+  }, [compareSelection, ensureSubscribed]);
 
   // Toggle compare mode on/off
   const toggleCompareMode = useCallback(() => {
@@ -117,6 +151,7 @@ export function Dashboard() {
       ...prev,
       { id, title: `Plot ${panelIdCounter}`, series: [] },
     ]);
+    setActivePanelId(id);
   };
 
   const removePanel = (id: string) => {
@@ -221,6 +256,8 @@ export function Dashboard() {
               onRemoveSeries={(idx) => removeSeriesFromPanel(panel.id, idx)}
               onClearSeries={() => clearPanelSeries(panel.id)}
               onTitleChange={(t) => renamePanel(panel.id, t)}
+              onActivate={() => setActivePanelId(panel.id)}
+              isActive={panel.id === activePanelId}
               paused={paused}
             />
           ))}

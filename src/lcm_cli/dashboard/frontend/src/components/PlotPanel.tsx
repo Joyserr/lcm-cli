@@ -13,6 +13,8 @@ interface PlotPanelProps {
   onRemoveSeries: (index: number) => void;
   onClearSeries: () => void;
   onTitleChange: (newTitle: string) => void;
+  onActivate: () => void;
+  isActive: boolean;
   paused: boolean;
 }
 
@@ -27,7 +29,7 @@ function computeStats(values: number[]) {
   return { min, max, avg: sum / values.length, last: values[values.length - 1] };
 }
 
-export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveSeries, onClearSeries, onTitleChange, paused }: PlotPanelProps) {
+export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveSeries, onClearSeries, onTitleChange, onActivate, isActive, paused }: PlotPanelProps) {
   const [editingTitle, setEditingTitle] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
@@ -154,7 +156,7 @@ export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveS
   };
 
   return (
-    <div className="plot-panel">
+    <div className={`plot-panel ${isActive ? 'plot-panel-active' : ''}`} onClick={onActivate}>
       <div className="plot-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {editingTitle ? (
