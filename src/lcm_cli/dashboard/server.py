@@ -140,15 +140,14 @@ def create_app(bridge: DataBridge | None = None, source: Any = None) -> FastAPI:
 
     @app.on_event("startup")
     async def startup_event() -> None:
-        """Set the running event loop on the bridge and start the data source."""
+        """Start the data source on the running event loop."""
         loop = asyncio.get_running_loop()
         _bridge.set_loop(loop)
-        if _source is not None:
+        if _source:
             _bridge.start_source(_source)
 
     @app.on_event("shutdown")
     async def shutdown_event() -> None:
-        """Stop the data source on shutdown."""
         _bridge.stop()
 
     return app

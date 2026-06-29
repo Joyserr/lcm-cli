@@ -33,11 +33,22 @@ export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveS
   const [editingTitle, setEditingTitle] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
+  // Tick counter to force re-render for window sliding
+  const [tick, setTick] = useState(0);
 
+  // Timer: slide the time window even without new data
+  useEffect(() => {
+    if (series.length === 0) return;
+    const timer = setInterval(() => setTick((t) => t + 1), 500);
+    return () => clearInterval(timer);
+  }, [series.length]);
+
+  // Compute aligned plot data from all series within the time window
   const plotData = useMemo(() => {
     const now = Date.now() / 1000;
     const cutoff = timeWindow > 0 ? now - timeWindow : 0;
 
+    // Collect all timestamps within the window
     const allTimes = new Set<number>();
     for (const s of series) {
       const chData = data[s.channel]?.[s.field];
@@ -48,6 +59,7 @@ export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveS
     }
     const sorted = Array.from(allTimes).sort((a, b) => a - b);
 
+    // Build per-series value arrays aligned to sorted timestamps
     const seriesArrays: (number | null)[][] = series.map(() =>
       sorted.map(() => null)
     );
@@ -68,7 +80,8 @@ export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveS
     }
 
     return [sorted, ...seriesArrays] as uPlot.AlignedData;
-  }, [series, data, timeWindow]);
+    // tick forces re-computation for window sliding
+  }, [series, data, timeWindow, tick]);
 
   // Compute per-series stats
   const stats = useMemo(() => {
@@ -77,15 +90,19 @@ export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveS
       const cutoff = timeWindow > 0 ? now - timeWindow : 0;
       const chData = data[s.channel]?.[s.field];
       if (!chData) return { min: 0, max: 0, avg: 0, last: 0 };
-      const vals = chData.values.filter((_, i) => chData.timestamps[i] >= cutoff);
+      const vals: number[] = [];
+      for (let i = 0; i < chData.timestamps.length; i++) {
+        if (chData.timestamps[i] >= cutoff) vals.push(chData.values[i]);
+      }
       return computeStats(vals);
     });
-  }, [series, data, timeWindow]);
+  }, [series, data, timeWindow, tick]);
 
-  // Chart create/update
+  // Create chart once when series changes (not on every data update)
   useEffect(() => {
     if (!chartRef.current || series.length === 0) return;
 
+    // Destroy previous chart
     if (plotRef.current) {
       plotRef.current.destroy();
       plotRef.current = null;
@@ -102,8 +119,12 @@ export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveS
           stroke: s.color,
           width: 2,
           fill: s.color + '18',
+          spanNulls: false,
         })),
       ],
+      scales: {
+        x: { time: true },
+      },
       axes: [
         {
           label: '',
@@ -134,7 +155,15 @@ export function PlotPanel({ title, series, data, timeWindow, onRemove, onRemoveS
       plotRef.current?.destroy();
       plotRef.current = null;
     };
-  }, [plotData, series, title]);
+    // Only recreate chart when series definition changes, not on data updates
+  }, [series, title]);
+
+  // Update chart data in-place (no destroy/recreate)
+  useEffect(() => {
+    if (plotRef.current && series.length > 0) {
+      plotRef.current.setData(plotData);
+    }
+  }, [plotData]);
 
   // Resize observer
   useEffect(() => {

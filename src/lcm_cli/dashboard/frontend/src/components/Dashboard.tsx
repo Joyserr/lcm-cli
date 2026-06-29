@@ -24,7 +24,6 @@ export function Dashboard() {
   const [panels, setPanels] = useState<PlotPanelConfig[]>([
     { id: 'panel-1', title: 'Plot 1', series: [] },
   ]);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [paused, setPaused] = useState(false);
   const [activePanelId, setActivePanelId] = useState<string>('panel-1');
   const { data, handleMessage } = useChannelData();
@@ -44,12 +43,20 @@ export function Dashboard() {
       if (!pausedRef.current) {
         handleMessage(msg);
       }
-      setRefreshTrigger((prev) => prev + 1);
     },
     [handleMessage]
   );
 
-  const { connected, subscribe } = useWebSocket(wsOnMessage);
+  // Re-subscribe to all channels on (re)connect
+  const subscribeRef = useRef<(channels: string[], fields?: string[]) => void>(() => {});
+  const handleReconnect = useCallback(() => {
+    if (subscribedChannels.current.size > 0) {
+      subscribeRef.current(Array.from(subscribedChannels.current));
+    }
+  }, []);
+
+  const { connected, subscribe } = useWebSocket(wsOnMessage, handleReconnect);
+  subscribeRef.current = subscribe;
 
   // Ensure activePanelId always points to an existing panel
   useEffect(() => {
@@ -238,7 +245,6 @@ export function Dashboard() {
           compareMode={compareMode}
           compareSelection={compareSelection}
           onCompareToggle={handleCompareCommit}
-          refreshTrigger={refreshTrigger}
         />
         <div className="main-area">
           {panels.map((panel) => (

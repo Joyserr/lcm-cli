@@ -8,7 +8,6 @@ interface ChannelPanelProps {
   compareMode: boolean;
   compareSelection: { channel: string; field: string }[];
   onCompareToggle: () => void;
-  refreshTrigger: number;
 }
 
 // Apple-style accent colors for channel dots
@@ -20,7 +19,6 @@ export function ChannelPanel({
   compareMode,
   compareSelection,
   onCompareToggle,
-  refreshTrigger,
 }: ChannelPanelProps) {
   const [channels, setChannels] = useState<ChannelInfo[]>([]);
   const [expandedChannels, setExpandedChannels] = useState<Set<string>>(new Set());
@@ -36,7 +34,7 @@ export function ChannelPanel({
     // Periodic refresh every 2 seconds to discover new channels and update Hz
     intervalRef.current = setInterval(refresh, 2000);
     return () => clearInterval(intervalRef.current);
-  }, [refreshTrigger, refresh]);
+  }, [refresh]);
 
   const toggleChannel = async (ch: string) => {
     setExpandedChannels((prev) => {

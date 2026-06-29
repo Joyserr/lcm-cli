@@ -1,19 +1,25 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import type { WsMessage } from '../types';
 
-export function useWebSocket(onMessage: (msg: WsMessage) => void) {
+export function useWebSocket(onMessage: (msg: WsMessage) => void, onReconnect?: () => void) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [connected, setConnected] = useState(false);
   const onMessageRef = useRef(onMessage);
+  const onReconnectRef = useRef(onReconnect);
   onMessageRef.current = onMessage;
+  onReconnectRef.current = onReconnect;
 
   const connect = useCallback(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const ws = new WebSocket(`${protocol}//${window.location.host}/ws/data`);
     wsRef.current = ws;
 
-    ws.onopen = () => setConnected(true);
+    ws.onopen = () => {
+      setConnected(true);
+      // Re-subscribe on (re)connect
+      onReconnectRef.current?.();
+    };
     ws.onmessage = (event) => {
       try {
         const msg: WsMessage = JSON.parse(event.data);
@@ -38,7 +44,9 @@ export function useWebSocket(onMessage: (msg: WsMessage) => void) {
   }, [connect]);
 
   const subscribe = useCallback((channels: string[], fields?: string[]) => {
-    wsRef.current?.send(JSON.stringify({ action: 'subscribe', channels, fields }));
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ action: 'subscribe', channels, fields }));
+    }
   }, []);
 
   return { connected, subscribe };
