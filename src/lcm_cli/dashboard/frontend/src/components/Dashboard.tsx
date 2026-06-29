@@ -72,19 +72,16 @@ export function Dashboard() {
   // Single field click (non-compare mode): add to active panel
   const handleFieldSelect = useCallback(
     (channel: string, field: string) => {
-      // Build a unique label: if same channel.field already exists in target panel, append (#2)
+      // Prevent duplicate: if the same channel.field already exists in the active panel, skip
       const targetPanel = panels.find((p) => p.id === activePanelId) || panels[0];
-      const existingCount = targetPanel
-        ? targetPanel.series.filter((s) => s.channel === channel && s.field === field).length
-        : 0;
-      const label = existingCount > 0
-        ? `${channel}.${field} (#${existingCount + 1})`
-        : `${channel}.${field}`;
+      if (targetPanel && targetPanel.series.some((s) => s.channel === channel && s.field === field)) {
+        return; // Already added — silently ignore
+      }
 
       const newSeries: PlotSeries = {
         channel,
         field,
-        label,
+        label: `${channel}.${field}`,
         color: nextColor(),
       };
 
